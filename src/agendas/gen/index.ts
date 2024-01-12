@@ -13,6 +13,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { toDate } from "date-fns-tz";
 import { Config, Meeting } from "../../interfaces.js";
+import { inspect } from "node:util";
 
 const EMDASH = "—";
 
@@ -77,14 +78,23 @@ function fillMeetingTemplate(
     ? getPriorMeetings(config, meeting)
     : [];
 
-  const { linksMarkdown } = config;
+  const { links } = config;
+  const allLinks = {
+    ...links,
+    ...(config.joinAMeetingFile
+      ? {
+          [config.joinAMeetingFile]: `${config.repoUrl}/blob/main/${config.joinAMeetingFile}`,
+        }
+      : null),
+    ...(config.liveNotesUrl ? { "live notes": config.liveNotesUrl } : null),
+  };
   const { description: meetingDescription } = meeting;
 
   return t`${
     howToJoin
       ? t`<!--
 
-# How to join (copied directly from /JoiningAMeeting.md)
+# How to join (copied directly from /${config.joinAMeetingFile!})
 
 ${howToJoin}
 
@@ -104,11 +114,13 @@ ${meetingDescription ? meetingDescription + "\n\n" : ""}\
   - _Please Note:_ The date or time may change. Please check this agenda the
     week of the meeting to confirm. While we try to keep all calendars accurate,
     this agenda document is the source of truth.
-- **Video Conference Link**: https://zoom.us/j/593263740
-  - _Password:_ graphqlwg
-- **Live Notes**: [Google Doc Notes][]
+- **Video Conference Link**: ${config.videoConferenceDetails}
+${config.liveNotesUrl ? `- **Live Notes**: [Live Notes][]\n` : ""}\
 
-${linksMarkdown ? linksMarkdown + "\n\n" : ""}\
+${Object.entries(allLinks)
+  .map(([name, href]) => t`[${name}]: ${href}`)
+  .join("\n")}
+
 ## Attendees
 
 <!-- prettier-ignore -->
@@ -125,7 +137,7 @@ ${config.attendeesTemplate}
 1. Determine volunteers for note taking (1m, Host)
 1. Review agenda (2m, Host)
 ${
-  priorSecondaryMeetings
+  priorSecondaryMeetings.length > 0
     ? `\
 1. Review prior secondary meetings (5m, Host)
 ${
@@ -169,11 +181,12 @@ function processTime(time: string) {
       `Invalid time range string '${time}'; should be of format 'HH:MM-HH:MM' in 24 hour clock.`,
     );
   }
+
   return {
-    startHH: parseInt(matches[0], 10),
-    startMM: parseInt(matches[1], 10),
-    endHH: parseInt(matches[2], 10),
-    endMM: parseInt(matches[3], 10),
+    startHH: parseInt(matches[1], 10),
+    startMM: parseInt(matches[2], 10),
+    endHH: parseInt(matches[3], 10),
+    endMM: parseInt(matches[4], 10),
   };
 }
 
@@ -219,7 +232,13 @@ function dateAndTimeMarkdown(config: Config, meeting: Meeting) {
 function t(strings: TemplateStringsArray, ...values: Array<string | number>) {
   return strings.reduce((out, string, i) => {
     const value = values[i - 1];
-    if (!value) throw new Error(`Template value #${i}: ${value}`);
+    if (value == null) {
+      throw new Error(
+        `Error occurred with ${i}th parameter in template: ${inspect(
+          value,
+        )}; template: ${strings.join("_____")}`,
+      );
+    }
     return out + value + string;
   });
 }

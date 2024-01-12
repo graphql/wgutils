@@ -14,41 +14,6 @@ export type Args<TArgs> = {
     | CamelCaseKey<key>]: Arguments<TArgs>[key];
 };
 
-export interface Config {
-  name: string;
-  repoUrl: string;
-  repoSubpath?: string;
-  description?: string;
-  linksMarkdown?: string;
-  attendeesTemplate: string;
-  /* From dateandtime.com URL query string: p1=...&p2=...&... */
-  dateAndTimeLocations?: string;
-  /** In the agenda file name */
-  filenameFragment?: string;
-  agendasFolder: string;
-  joinAMeetingFile?: string;
-  timezone: "US/Pacific" | "UTC" | string;
-  frequency: "weekly" | "monthly";
-  /** If weekly, which meeting is the primary? */
-  primaryN?: number;
-  weekday: "M" | "Tu" | "W" | "Th" | "F" | "Sa" | "Su";
-  /** If frequency="monthly", the nth weekday will be used */
-  nth?: number; // If "Monthly"
-  /** 24h range, e.g. `"09:15-19:45"` */
-  time: string;
-  /** If this WG has secondary meetings, specify them here. Only for monthly. */
-  secondaryMeetings?: Array<{
-    /** If this is on a different day, set this to the "offset", e.g. if the main meeting is Thursday but the secondary is the next Wednesday, use `-1` */
-    dayOffset?: number;
-    nth: number;
-    time: string;
-    /** Default 'Secondary' */
-    name?: string;
-    description?: string;
-    filenameFragment?: string;
-  }>;
-}
-
 /** @internal */
 export interface Meeting {
   primary: boolean;
@@ -62,3 +27,5 @@ export interface Meeting {
   time: string;
   filenameFragment: string;
 }
+
+export { Config } from "./configSchema.js";
