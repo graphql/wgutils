@@ -2,6 +2,7 @@ import type { Argv } from "yargs";
 import type { ArgsFromOptions } from "../../interfaces.js";
 
 import { generateAgendas } from "./index.js";
+import { loadConfig } from "../../config.js";
 
 export function options(yargs: Argv) {
   return yargs
@@ -11,9 +12,9 @@ export function options(yargs: Argv) {
 }
 
 export async function run(args: ArgsFromOptions<typeof options>) {
-  const text = await generateAgendas({
+  const config = await loadConfig();
+  await generateAgendas(config, {
     year: args.year,
     month: args.month,
   });
-  console.log(text);
 }

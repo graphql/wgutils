@@ -1,10 +1,13 @@
 import type { Argv, Arguments, CamelCaseKey } from "yargs";
 
+/** @internal */
 export type OptionsFunction<TArgs> = (yargs: Argv) => Argv<TArgs>;
 
+/** @internal */
 export type ArgsFromOptions<TOptionsFunction extends OptionsFunction<any>> =
   TOptionsFunction extends OptionsFunction<infer U> ? Args<U> : never;
 
+/** @internal */
 export type Args<TArgs> = {
   [key in keyof Arguments<TArgs> as
     | key
@@ -47,6 +50,7 @@ export interface Config {
   }>;
 }
 
+/** @internal */
 export interface Meeting {
   primary: boolean;
   name: string;

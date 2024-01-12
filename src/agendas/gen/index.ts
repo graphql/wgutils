@@ -5,22 +5,24 @@
  *
  * To use this tool, provide year and month as command arguments
  *
- *  tools/gen-agenda.js 2023 6
+ * wgtools agenda gen 2023 6
  *
  */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { toDate } from "date-fns-tz";
-import { loadConfig } from "../../config";
-import { Config, Meeting } from "../../interfaces";
+import { Config, Meeting } from "../../interfaces.js";
 
 const EMDASH = "—";
 
-export async function generateAgendas(options: {
-  year: string;
-  month: string;
-}) {
+export async function generateAgendas(
+  config: Config,
+  options: {
+    year: string;
+    month: string;
+  },
+) {
   const year = parseInt(options.year, 10);
   const month = parseInt(options.month, 10);
   if (!year || !month) {
@@ -37,8 +39,6 @@ export async function generateAgendas(options: {
     console.error(`Invalid month '${month}', must be between 1 and 12`);
     process.exit(1);
   }
-
-  const config = await loadConfig();
 
   // Get JoiningAMeeting contents
   const howToJoin = config.joinAMeetingFile
