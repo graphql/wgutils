@@ -46,7 +46,7 @@ const config = {
 
   agendasFolder: "agendas",
   dateAndTimeLocations: 'p1=224&p2=179&p3=136&p4=268&p5=367&p6=438&p7=248&p8=240',
-  joinAMeetingFile: "JoinAMeeting.md",
+  joiningAMeetingFile: "JoiningAMeeting.md",
   filenameFragment: "wg-primary",
   description: \`\\
 The GraphQL Working Group meets regularly to discuss changes to the

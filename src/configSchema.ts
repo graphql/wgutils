@@ -29,7 +29,7 @@ export const configSchema = z.object({
   /** In the agenda file name */
   filenameFragment: z.string().optional(),
   agendasFolder: z.string(),
-  joinAMeetingFile: z.string().optional(),
+  joiningAMeetingFile: z.string().optional(),
   // TODO: support more timezones
   timezone: z.enum(["US/Pacific", "UTC"]),
   frequency: z.enum(["weekly", "monthly"]),

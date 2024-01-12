@@ -42,10 +42,10 @@ export async function generateAgendas(
   }
 
   // Get JoiningAMeeting contents
-  const howToJoin = config.joinAMeetingFile
-    ? (await readFile(config.joinAMeetingFile, "utf8")).split(
-        "\n## How to join\n\n",
-      )[1]
+  const howToJoin = config.joiningAMeetingFile
+    ? (
+        await readFile(`${process.cwd()}/${config.joiningAMeetingFile}`, "utf8")
+      ).split("\n## How to join\n\n")[1]
     : undefined;
 
   const meetings = getMeetings(config, year, month);
@@ -81,9 +81,9 @@ function fillMeetingTemplate(
   const { links } = config;
   const allLinks = {
     ...links,
-    ...(config.joinAMeetingFile
+    ...(config.joiningAMeetingFile
       ? {
-          [config.joinAMeetingFile]: `${config.repoUrl}/blob/main/${config.joinAMeetingFile}`,
+          [config.joiningAMeetingFile]: `${config.repoUrl}/blob/main/${config.joiningAMeetingFile}`,
         }
       : null),
     ...(config.liveNotesUrl ? { "live notes": config.liveNotesUrl } : null),
@@ -94,7 +94,7 @@ function fillMeetingTemplate(
     howToJoin
       ? t`<!--
 
-# How to join (copied directly from /${config.joinAMeetingFile!})
+# How to join (copied directly from /${config.joiningAMeetingFile!})
 
 ${howToJoin}
 
