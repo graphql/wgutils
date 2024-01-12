@@ -61,7 +61,7 @@ export async function generateAgendas(
 function getPaths(config: Config, meeting: Meeting) {
   const { year, month, date, filenameFragment } = meeting;
   const ROOT = process.cwd();
-  const relativePath = `${config.agendasFolder}/${year}/${month2D(
+  const relativePath = `${config.agendasFolder ?? "agendas"}/${year}/${month2D(
     month,
   )}-${monthShort(month)}/${day2D(year, month, date)}-${filenameFragment}.md`;
   const url = `${config.repoUrl}/blob/main/${relativePath}`;
@@ -80,6 +80,12 @@ function fillMeetingTemplate(
 
   const { links } = config;
   const allLinks = {
+    calendar:
+      "https://calendar.google.com/calendar/embed?src=linuxfoundation.org_ik79t9uuj2p32i3r203dgv5mo8%40group.calendar.google.com",
+    "google calendar":
+      "https://calendar.google.com/calendar?cid=bGludXhmb3VuZGF0aW9uLm9yZ19pazc5dDl1dWoycDMyaTNyMjAzZGd2NW1vOEBncm91cC5jYWxlbmRhci5nb29nbGUuY29t",
+    "ical file":
+      "https://calendar.google.com/calendar/ical/linuxfoundation.org_ik79t9uuj2p32i3r203dgv5mo8%40group.calendar.google.com/public/basic.ics",
     ...links,
     ...(config.joiningAMeetingFile
       ? {

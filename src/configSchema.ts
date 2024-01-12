@@ -28,7 +28,7 @@ export const configSchema = z.object({
   dateAndTimeLocations: z.string().optional(),
   /** In the agenda file name */
   filenameFragment: z.string().optional(),
-  agendasFolder: z.string(),
+  agendasFolder: z.string().optional(),
   joiningAMeetingFile: z.string().optional(),
   // TODO: support more timezones
   timezone: z.enum(["US/Pacific", "UTC"]),
