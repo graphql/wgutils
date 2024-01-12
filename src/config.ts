@@ -24,7 +24,7 @@ export async function loadConfig(): Promise<Config> {
 export const template = `\
 // @ts-check
 
-/** @type {import('wgtools').Config} */
+/** @type {import('wgutils').Config} */
 const config = {
   name: "GraphQL WG",
   repoUrl: 'https://github.com/graphql/graphql-wg',

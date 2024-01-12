@@ -15,7 +15,7 @@ yargs(hideBin(process.argv))
   .example("$0 agenda gen 2024 1", "Generate the agendas for January 2024")
   .command(
     "init",
-    "Initialize wgtools",
+    "Initialize wgutils",
     (yargs) => initCmd.options(yargs),
     initCmd.run,
   )

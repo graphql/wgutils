@@ -5,7 +5,7 @@
  *
  * To use this tool, provide year and month as command arguments
  *
- * wgtools agenda gen 2023 6
+ * wgutils agenda gen 2023 6
  *
  */
 

@@ -1,13 +1,13 @@
 {
-  "name": "@graphql/wgtools",
+  "name": "wgutils",
   "version": "0.1.0",
   "description": "Tools for managing working groups",
   "main": "dist/index.js",
   "bin": {
-    "wgtools": "dist/cli.js"
+    "wgutils": "dist/cli.js"
   },
   "scripts": {
-    "wgtools": "node dist/cli.js",
+    "wgutils": "node dist/cli.js",
     "watch": "tsc --watch",
     "build": "tsc",
     "prepack": "tsc",
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/graphql/wgtools.git"
+    "url": "git+https://github.com/graphql/wgutils.git"
   },
   "keywords": [
     "GraphQL",
@@ -33,9 +33,9 @@
   "author": "Benjie Gillam <code@benjiegillam.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/graphql/wgtools/issues"
+    "url": "https://github.com/graphql/wgutils/issues"
   },
-  "homepage": "https://github.com/graphql/wgtools#readme",
+  "homepage": "https://github.com/graphql/wgutils#readme",
   "devDependencies": {
     "@tsconfig/node20": "^20.1.2",
     "@types/node": "^20.11.0",

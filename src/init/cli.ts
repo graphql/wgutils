@@ -5,7 +5,7 @@ import type { ArgsFromOptions } from "../interfaces.js";
 import { getConfigPath, loadConfig, template } from "../config.js";
 
 export function options(yargs: Argv) {
-  return yargs.example("$0", "Initialize wgtools");
+  return yargs.example("$0", "Initialize wgutils");
 }
 
 export async function run(args: ArgsFromOptions<typeof options>) {
