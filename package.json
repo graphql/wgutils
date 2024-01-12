@@ -1,9 +1,11 @@
 {
-  "name": "wgtools",
+  "name": "@graphql/wgtools",
   "version": "0.1.0",
   "description": "Tools for managing working groups",
   "main": "dist/index.js",
-  "bin": "dist/cli.js",
+  "bin": {
+    "wgtools": "dist/cli.js"
+  },
   "scripts": {
     "wgtools": "node dist/cli.js",
     "watch": "tsc --watch",
