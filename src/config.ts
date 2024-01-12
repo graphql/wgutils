@@ -5,7 +5,8 @@ export function getConfigPath() {
 }
 export async function loadConfig(): Promise<Config> {
   const configPath = getConfigPath();
-  return await import(configPath);
+  const config = (await import(configPath)).default;
+  return config;
 }
 
 export const template = `\
@@ -82,4 +83,6 @@ who could not make the primary meeting time.\`,
     },
   ],
 };
+
+module.exports = config;
 `;
