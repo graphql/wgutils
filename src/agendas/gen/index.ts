@@ -142,12 +142,7 @@ ${
 1. Review prior secondary meetings (5m, Host)
 ${
   priorSecondaryMeetings
-    .map(
-      (prior) =>
-        `   - [${monthName(prior.month)} WG ${prior.name}](${
-          getPaths(config, prior).url
-        })`,
-    )
+    .map((prior) => `   - [${prior.name}](${getPaths(config, prior).url})`)
     .join("\n") + "\n"
 }`
     : ""
@@ -350,7 +345,8 @@ function getMeetings(config: Config, year: number, month: number) {
       filenameFragment: config.filenameFragment ?? fragmentFromName(name),
     });
     if (config.secondaryMeetings) {
-      for (const m of config.secondaryMeetings) {
+      for (let index = 0; index < config.secondaryMeetings.length; index++) {
+        const m = config.secondaryMeetings[index];
         const baseDate = nthDate(year, month, weekday, m.nth);
         if (baseDate === null) {
           throw new Error(
@@ -358,9 +354,9 @@ function getMeetings(config: Config, year: number, month: number) {
           );
         }
         const date = baseDate + (m.dayOffset ?? 0);
-        const name = `${config.name} ${EMDASH} ${monthName(month)} ${year}${
-          m.nth ?? "Secondary"
-        }`;
+        const name = `${config.name} ${EMDASH} ${monthName(month)} ${year} (${
+          m.name ?? `Secondary ${index + 1}`
+        })`;
         meetings.push({
           primary: false,
           name,
