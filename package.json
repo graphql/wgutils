@@ -9,7 +9,7 @@
     "watch": "tsc --watch",
     "build": "tsc",
     "prepack": "tsc",
-    "postversion": "node scripts/postversion.mjs",
+    "postversion": "node scripts/postversion.mjs && git add src/version.ts",
     "test": "true"
   },
   "repository": {
