@@ -8,11 +8,13 @@ export async function loadConfig(): Promise<Config> {
   return await import(configPath);
 }
 
-export const template = String.raw`\
+export const template = `\
+// @ts-check
+
 /** @type {import('wgtools').Config} */
 const config = {
+  name: "GraphQL WG",
   repoUrl: 'https://github.com/graphql/graphql-wg',
-  wgName: "GraphQL WG",
   description: \`\\
 The GraphQL Working Group meets regularly to discuss changes to the
 [GraphQL Specification][] and other core GraphQL projects. This is an open
@@ -36,13 +38,13 @@ hold additional secondary meetings later in the month.\`,
 \`,
   dateAndTimeLocations: 'p1=224&p2=179&p3=136&p4=268&p5=367&p6=438&p7=248&p8=240',
   filenameFragment: "wg-primary",
-  agendasFolder: process.cwd() + "/agendas",
-  joinAMeetingFile: process.cwd() + "/JoinAMeeting.md",
+  agendasFolder: "agendas",
+  joinAMeetingFile: "JoinAMeeting.md",
   timezone: "US/Pacific",
   frequency: "monthly",
   nth: 1,
-  weekday: "Th",
-  time: "10:30-12:00",
+  weekday: "Th", // M, Tu, W, Th, F, Sa, Su
+  time: "10:30-12:00", // 24-hour clock, range
   secondaryMeetings: [
     {
       // Wednesday, not Thursday

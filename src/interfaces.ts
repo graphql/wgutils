@@ -15,10 +15,9 @@ export type Args<TArgs> = {
 };
 
 export interface Config {
+  name: string;
   repoUrl: string;
-  root?: string;
   repoSubpath?: string;
-  wgName: string;
   description?: string;
   linksMarkdown?: string;
   attendeesTemplate: string;

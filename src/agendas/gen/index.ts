@@ -59,7 +59,7 @@ export async function generateAgendas(
 
 function getPaths(config: Config, meeting: Meeting) {
   const { year, month, date, filenameFragment } = meeting;
-  const ROOT = config.root ?? process.cwd();
+  const ROOT = process.cwd();
   const relativePath = `${config.agendasFolder}/${year}/${month2D(
     month,
   )}-${monthShort(month)}/${day2D(year, month, date)}-${filenameFragment}.md`;
@@ -316,7 +316,7 @@ function getMeetings(config: Config, year: number, month: number) {
         `There's no ${config.nth}th ${config.weekday} in ${year}-${month}?`,
       );
     }
-    const name = `${config.wgName} ${EMDASH} ${monthName(month)} ${year}${
+    const name = `${config.name} ${EMDASH} ${monthName(month)} ${year}${
       config.secondaryMeetings ? " (Primary)" : ""
     }`;
     meetings.push({
@@ -339,7 +339,7 @@ function getMeetings(config: Config, year: number, month: number) {
           );
         }
         const date = baseDate + (m.dayOffset ?? 0);
-        const name = `${config.wgName} ${EMDASH} ${monthName(month)} ${year}${
+        const name = `${config.name} ${EMDASH} ${monthName(month)} ${year}${
           m.nth ?? "Secondary"
         }`;
         meetings.push({
@@ -370,7 +370,7 @@ function getMeetings(config: Config, year: number, month: number) {
       const primary = n === (config.primaryN ?? 1);
       meetings.push({
         primary,
-        name: `${config.wgName} ${EMDASH} ${monthName(month)} ${year} (${
+        name: `${config.name} ${EMDASH} ${monthName(month)} ${year} (${
           primary ? "Primary" : `Week ${n}`
         })`,
         description: config.description,

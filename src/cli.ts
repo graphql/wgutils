@@ -1,10 +1,13 @@
-import yargs from "yargs/yargs";
+import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
 import * as agendasCmd from "./agendas/cli.js";
 import * as initCmd from "./init/cli.js";
 
 yargs(hideBin(process.argv))
+  .strict()
+  .showHelpOnFail(false, "Specify --help for available options")
+  .wrap(yargs.terminalWidth())
   .parserConfiguration({
     // Last option wins - do NOT make duplicates into arrays!
     "duplicate-arguments-array": false,
@@ -22,4 +25,5 @@ yargs(hideBin(process.argv))
     (yargs) => agendasCmd.options(yargs),
     agendasCmd.run,
   )
-  .demandCommand();
+  .demandCommand().argv;
+// Note: the above 'argv' property access actually triggers yargs to start; don't remove it.
