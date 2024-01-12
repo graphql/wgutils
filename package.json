@@ -1,0 +1,31 @@
+{
+  "name": "wgtools",
+  "version": "0.0.0",
+  "description": "Tools for managing working groups",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "true"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/graphql/wgtools.git"
+  },
+  "keywords": [
+    "GraphQL",
+    "working",
+    "group",
+    "wg",
+    "tools",
+    "utils",
+    "helpers",
+    "schedule",
+    "meeting",
+    "agenda"
+  ],
+  "author": "Benjie Gillam <code@benjiegillam.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/graphql/wgtools/issues"
+  },
+  "homepage": "https://github.com/graphql/wgtools#readme"
+}
