@@ -3,7 +3,13 @@
   "version": "0.0.0",
   "description": "Tools for managing working groups",
   "main": "dist/index.js",
+  "bin": "dist/cli.js",
   "scripts": {
+    "wgtools": "node dist/cli.js",
+    "watch": "tsc --watch",
+    "build": "tsc",
+    "prepack": "tsc",
+    "postversion": "node scripts/postversion.mjs",
     "test": "true"
   },
   "repository": {
@@ -27,5 +33,15 @@
   "bugs": {
     "url": "https://github.com/graphql/wgtools/issues"
   },
-  "homepage": "https://github.com/graphql/wgtools#readme"
+  "homepage": "https://github.com/graphql/wgtools#readme",
+  "devDependencies": {
+    "@tsconfig/node20": "^20.1.2",
+    "@types/node": "^20.11.0",
+    "@types/yargs": "^17.0.32",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "yargs": "^17.7.2"
+  }
 }
