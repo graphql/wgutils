@@ -21,6 +21,7 @@ export const configSchema = z.object({
   liveNotesUrl: z.string().optional(),
   repoSubpath: z.string().optional(),
   description: z.string().optional(),
+  agendaTemplateBottom: z.string().optional(),
   // linksMarkdown: z.string().optional(),
   links: z.record(z.string()).optional(),
   attendeesTemplate: z.string(),

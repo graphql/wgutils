@@ -109,7 +109,11 @@ ${howToJoin}
 `
       : t``
   }\
-| This is an open meeting: To attend, read [JoiningAMeeting.md][] then edit and PR this file. (Edit: ✎ above, or press "e") |
+| This is an open meeting: To attend, ${
+    config.joiningAMeetingFile
+      ? `read [${config.joiningAMeetingFile}][] then `
+      : ""
+  }edit and PR this file. (Edit: ✎ above, or press "e") |
 | ---------------------------------------------------------------------------------------- |
 
 # ${meeting.name}
@@ -153,11 +157,14 @@ ${
 }`
     : ""
 }\
+${
+  config.agendaTemplateBottom ??
+  `\
 1. Review previous meeting's action items (5m, Host)
-   - [Ready for review](https://github.com/graphql/graphql-wg/issues?q=is%3Aissue+is%3Aopen+label%3A%22Ready+for+review+%F0%9F%99%8C%22+sort%3Aupdated-desc)
-   - [All open action items (by last update)](https://github.com/graphql/graphql-wg/issues?q=is%3Aissue+is%3Aopen+label%3A%22Action+item+%3Aclapper%3A%22+sort%3Aupdated-desc)
-   - [All open action items (by meeting)](https://github.com/graphql/graphql-wg/projects?query=is%3Aopen+sort%3Aname-asc)
-`;
+   - [Ready for review](${config.repoUrl}/issues?q=is%3Aissue+is%3Aopen+label%3A%22Ready+for+review+%F0%9F%99%8C%22+sort%3Aupdated-desc)
+   - [All open action items (by last update)](${config.repoUrl}/issues?q=is%3Aissue+is%3Aopen+label%3A%22Action+item+%3Aclapper%3A%22+sort%3Aupdated-desc)
+`
+}`;
 }
 
 function getPriorMeetings(config: Config, primaryMeeting: Meeting) {
