@@ -286,17 +286,26 @@ function nthDate(
       monthStartWeekday,
   );
 
-  for (let i = 1; i < nth; i++) {
+  /** All of the `weekday` dates in the given month */
+  const weekdayDates = [new Date(+date)];
+
+  for (let i = 1; i <= 5; i++) {
     const oldDate = date.getDate();
     // Add a week
     date.setDate(oldDate + 7);
     if (date.getDate() < oldDate) {
       // Must have gone forward a month
-      return null;
+      break;
     }
+    weekdayDates.push(new Date(+date));
   }
 
-  return date.getDate();
+  const d =
+    nth > 0 ? weekdayDates[nth - 1] : weekdayDates[weekdayDates.length + nth];
+  if (!d) {
+    return null;
+  }
+  return d.getDate();
 }
 
 function monthName(month: number) {

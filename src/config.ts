@@ -33,6 +33,7 @@ const config = {
   liveNotesUrl: "https://docs.google.com/document/d/...",
   timezone: "US/Pacific",
   frequency: "monthly",
+  // For "last" set nth to -1
   nth: 1,
   weekday: "Th", // M, Tu, W, Th, F, Sa, Su
   time: "10:30-12:00", // 24-hour clock, range
