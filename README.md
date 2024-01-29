@@ -59,9 +59,9 @@ Optional but important options:
 
 Options that are unlikely to be overridden for new projects:
 
-- `agendasFolder` (_optional_) - the name of the folder the agendas are stored in (i.e. `"agendas"`)
 - `links` (_optional_) - an object defining some named links to use in the markdown (e.g. from the `description`)
 - `repoSubpath` (_optional_) - if the `agendas`/etc folder is not in the root, the relative path to it. Unlikely you'll need this.
+- `agendasFolder` (_optional_) - the name of the folder the agendas are stored in (i.e. `"agendas"`), relative to `repoSubpath` (or the repo root)
 
 ## wgutils agenda gen
 

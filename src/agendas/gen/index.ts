@@ -61,9 +61,13 @@ export async function generateAgendas(
 function getPaths(config: Config, meeting: Meeting) {
   const { year, month, date, filenameFragment } = meeting;
   const ROOT = process.cwd();
-  const relativePath = `${config.agendasFolder ?? "agendas"}/${year}/${month2D(
+  const relativePath = `${config.repoSubpath ? `${config.repoSubpath}/` : ""}${
+    config.agendasFolder ?? "agendas"
+  }/${year}/${month2D(month)}-${monthShort(month)}/${day2D(
+    year,
     month,
-  )}-${monthShort(month)}/${day2D(year, month, date)}-${filenameFragment}.md`;
+    date,
+  )}-${filenameFragment}.md`;
   const url = `${config.repoUrl}/blob/main/${relativePath}`;
   const absPath = `${ROOT}/${relativePath}`;
   return { relativePath, url, absPath };
