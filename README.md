@@ -68,6 +68,8 @@ Options that are unlikely to be overridden for new projects:
 Generates agenda files for the given year and month, according to the settings
 in `wg.config.js`.
 
+Example: generate the agenda file(s) for April 2024:
+
 ```
 wgutils agenda gen 2024 4
 ```
