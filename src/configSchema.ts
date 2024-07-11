@@ -32,7 +32,7 @@ export const configSchema = z.object({
   agendasFolder: z.string().optional(),
   joiningAMeetingFile: z.string().optional(),
   // TODO: support more timezones
-  timezone: z.enum(["US/Pacific", "UTC"]),
+  timezone: z.enum(["US/Pacific", "US/Eastern", "UTC"]),
   frequency: z.enum(["weekly", "monthly"]),
   /** If weekly, which meeting is the primary? */
   primaryN: z.number().optional(),
