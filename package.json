@@ -46,6 +46,7 @@
   "dependencies": {
     "date-fns": "^2",
     "date-fns-tz": "^2.0.0",
+    "parse-diff": "0.11.1",
     "yargs": "^17.7.2",
     "zod": "^3.22.4"
   },
