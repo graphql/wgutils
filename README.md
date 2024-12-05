@@ -76,7 +76,11 @@ wgutils agenda gen 2024 4
 
 ## wgutils can-automerge
 
-Use with a GitHub action such as:
+First, and **SUPER IMPORTANT**, make sure that your `main` branch is configured
+with branch protections, and that EasyCLA is listed in the list of required
+checks to pass.
+
+Then you can add it to your repo with a GitHub action such as:
 
 ```yml
 name: Agenda auto-merge
@@ -92,6 +96,7 @@ permissions:
 
 jobs:
   validate-and-merge:
+    if: ${{ github.event.pull_request.base.ref == 'main' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -139,3 +144,4 @@ unless there's a need to do so:
 
 - Primary meeting must be the first meeting in the month (otherwise 'prior
   meetings' is not populated correctly)
+- The automerge system only works with `/agendas` root level folder currently - needs updating to work with the configured agendas path.

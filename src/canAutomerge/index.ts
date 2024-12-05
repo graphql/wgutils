@@ -44,6 +44,7 @@ function checkPatch(patch: string, expectedHash: string) {
     throw new Error(`File was renamed`);
   }
   if (
+    // TODO: replace this with a config-aware agenda check
     !/^agendas\/[0-9]+\/[0-9]{1,2}-[A-Za-z]+\/[0-9]+-[-a-z]+\.md$/.test(file.to)
   ) {
     throw new Error(`Not an agenda file`);
