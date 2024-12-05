@@ -1,9 +1,15 @@
 import { z } from "zod";
 
 const annualItemSchema = z.object({
+  /** `1.` prefix and indentation will be handled for you */
   text: z.string(),
   /** 1 - January, 12 - December */
   month: z.number(),
+  /**
+   * By default we only add the item to the primary meeting; set true if the
+   * item should be added to all meetings.
+   */
+  allMeetings: z.boolean().optional(),
 });
 export type AnnualItem = z.infer<typeof annualItemSchema>;
 

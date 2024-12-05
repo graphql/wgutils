@@ -121,9 +121,10 @@ function fillMeetingTemplate(
     ...(config.liveNotesUrl ? { "live notes": config.liveNotesUrl } : null),
   };
   const { description: meetingDescription } = meeting;
-  const annualItems = first
-    ? config.annualItems?.filter((i) => i.month === meeting.month) ?? []
-    : [];
+  const annualItems =
+    config.annualItems?.filter(
+      (i) => i.month === meeting.month && (first || i.allMeetings),
+    ) ?? [];
 
   return t`${
     howToJoin
@@ -187,12 +188,13 @@ ${
     : ""
 }\
 ${
-  config.agendaTemplateBottom ??
+  config.agendaTemplateBottom?.trim() ??
   `\
-1. Check for [ready for review agenda items](${config.repoUrl}/issues?q=is%3Aissue+is%3Aopen+label%3A%22Ready+for+review+%F0%9F%99%8C%22+sort%3Aupdated-desc) (5m, Host)
+1. Check for [ready for review agenda items](${config.repoUrl}/issues?q=is%3Aissue+is%3Aopen+label%3A%22Ready+for+review+%F0%9F%99%8C%22+sort%3Aupdated-desc) (5m, Host)\
 `
 }\
-${annualItems.length > 0 ? `\n${annualItems.map(formatItem).join("\n")}` : ""}`;
+${annualItems.length > 0 ? `\n${annualItems.map(formatItem).join("\n")}` : ""}
+`;
 }
 
 function getPriorMeetings(config: Config, primaryMeeting: Meeting) {
