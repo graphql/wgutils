@@ -14,6 +14,7 @@ import { dirname } from "node:path";
 import { toDate } from "date-fns-tz";
 import { Config, Meeting } from "../../interfaces.js";
 import { inspect } from "node:util";
+import { AnnualItem } from "../../configSchema.js";
 
 const EMDASH = "—";
 
@@ -49,12 +50,14 @@ export async function generateAgendas(
     : undefined;
 
   const meetings = getMeetings(config, year, month);
+  let first = true;
   for (const meeting of meetings) {
-    const contents = fillMeetingTemplate(config, meeting, howToJoin);
+    const contents = fillMeetingTemplate(config, meeting, howToJoin, first);
     const { absPath } = getPaths(config, meeting);
     await mkdirp(dirname(absPath));
     await writeFile(absPath, contents);
     console.log(`Wrote file: ${absPath}`);
+    first = false;
   }
 }
 
@@ -73,10 +76,29 @@ function getPaths(config: Config, meeting: Meeting) {
   return { relativePath, url, absPath };
 }
 
+function formatItem(item: AnnualItem): string {
+  const { text } = item;
+  const lines = text.replace(/\t/g, "  ").split("\n");
+  const l = lines.length;
+  let minIndent = Infinity;
+  for (let i = 1; i < l; i++) {
+    const line = lines[i];
+    const [m] = line.match(/^\s*/g)!;
+    if (m.length < minIndent) {
+      minIndent = m.length;
+    }
+  }
+  for (let i = 1; i < l; i++) {
+    lines[i] = `   ` + lines[i].slice(minIndent).trimEnd();
+  }
+  return `1. ` + lines.join("\n");
+}
+
 function fillMeetingTemplate(
   config: Config,
   meeting: Meeting,
-  howToJoin?: string,
+  howToJoin: string | undefined,
+  first: boolean,
 ) {
   const priorSecondaryMeetings = meeting.primary
     ? getPriorMeetings(config, meeting)
@@ -99,6 +121,9 @@ function fillMeetingTemplate(
     ...(config.liveNotesUrl ? { "live notes": config.liveNotesUrl } : null),
   };
   const { description: meetingDescription } = meeting;
+  const annualItems = first
+    ? config.annualItems?.filter((i) => i.month === meeting.month) ?? []
+    : [];
 
   return t`${
     howToJoin
@@ -166,7 +191,8 @@ ${
   `\
 1. Check for [ready for review agenda items](${config.repoUrl}/issues?q=is%3Aissue+is%3Aopen+label%3A%22Ready+for+review+%F0%9F%99%8C%22+sort%3Aupdated-desc) (5m, Host)
 `
-}`;
+}\
+${annualItems.length > 0 ? `\n${annualItems.map(formatItem).join("\n")}` : ""}`;
 }
 
 function getPriorMeetings(config: Config, primaryMeeting: Meeting) {

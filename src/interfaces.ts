@@ -21,6 +21,7 @@ export interface Meeting {
   description: string | undefined;
   timezone: string;
   year: number;
+  /** 1 - Jan, 12 - Dec */
   month: number;
   date: number;
   /** Range, 24h */

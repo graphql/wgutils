@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+const annualItemSchema = z.object({
+  text: z.string(),
+  /** 1 - January, 12 - December */
+  month: z.number(),
+});
+export type AnnualItem = z.infer<typeof annualItemSchema>;
+
 const secondaryMeetingSchema = z.object({
   dayOffset: z
     .number()
@@ -41,6 +48,8 @@ export const configSchema = z.object({
   nth: z.number().optional(),
   /** 24h range, e.g. `"09:15-19:45"` */
   time: z.string(),
+  /** If this WG has annual items, specify them here. */
+  annualItems: z.array(annualItemSchema).optional(),
   /** If this WG has secondary meetings, specify them here. Only for monthly. */
   secondaryMeetings: z.array(secondaryMeetingSchema).optional(),
 });
