@@ -13,7 +13,7 @@ const execAsync = promisify(exec);
 const safeChars =
   /^[^\x00-\x08\x0B\x0C\x0E-\x1F\u200B\u200C\u200D\uFEFF\uE000-\uF8FF]*$/u;
 
-function checkPatch(patch: string, expectedHash: string) {
+function checkPatch(config: Config, patch: string, expectedHash: string) {
   const lines = patch.split("\n");
   const hash = lines[0].split(" ")[1];
   if (hash !== expectedHash) {
@@ -43,11 +43,19 @@ function checkPatch(patch: string, expectedHash: string) {
   if (!file.from || !file.to || file.from !== file.to) {
     throw new Error(`File was renamed`);
   }
+  const agendasFolder = (config.agendasFolder ?? "agendas/").replace(
+    /\/+$/,
+    "",
+  );
+  if (!file.to.startsWith(agendasFolder)) {
+    throw new Error(`Not within the '${agendasFolder}' folder: '${file.to}'`);
+  }
   if (
-    // TODO: replace this with a config-aware agenda check
-    !/^agendas\/[0-9]+\/[0-9]{1,2}-[A-Za-z]+\/[0-9]+-[-a-z]+\.md$/.test(file.to)
+    !/^\/[0-9]+\/[0-9]{1,2}-[A-Za-z]+\/[0-9]+-[-a-z0-9]+\.md$/.test(
+      file.to.substring(agendasFolder.length),
+    )
   ) {
-    throw new Error(`Not an agenda file`);
+    throw new Error(`Not an agenda file: ${file.to}`);
   }
   for (const chunk of file.chunks) {
     for (const change of chunk.changes) {
@@ -93,6 +101,6 @@ export async function checkPr(
 
   const { stdout: patch } = await execAsync(`gh pr diff ${prNumber} --patch`);
 
-  checkPatch(patch, hash);
+  checkPatch(config, patch, hash);
   console.log("Looks safe");
 }
