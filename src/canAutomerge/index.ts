@@ -63,7 +63,7 @@ function checkPatch(patch: string, expectedHash: string) {
         }
         case "del": {
           // Deleting a blank link is allowed; otherwise reject
-          if (change.content.trim() !== "") {
+          if (change.content.slice(1).trim() !== "") {
             throw new Error(`Aborting due to deletion`);
           }
           break;
