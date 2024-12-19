@@ -62,7 +62,11 @@ function checkPatch(patch: string, expectedHash: string) {
           break;
         }
         case "del": {
-          throw new Error(`Aborting due to deletion`);
+          // Deleting a blank link is allowed; otherwise reject
+          if (change.content.trim() !== "") {
+            throw new Error(`Aborting due to deletion`);
+          }
+          break;
         }
         default: {
           const never: never = change;

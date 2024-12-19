@@ -117,11 +117,13 @@ jobs:
           sleep 15
 
           # Wait for checks to pass
-          CHECKS_OUTPUT="$(gh pr checks ${{ github.event.pull_request.number }} --fail-fast --watch --required --json bucket --jq '.state' 2>&1 || true)"
+          gh pr checks ${{ github.event.pull_request.number }} --fail-fast --watch --required 2>&1 || true
+          # Now get the result in JSON
+          CHECKS_OUTPUT="$(gh pr checks ${{ github.event.pull_request.number }} --required --json bucket --jq 'map(.bucket == "pass") | all' 2>&1 || true)"
 
           if echo "$CHECKS_OUTPUT" | grep -q "no required checks reported"; then
             echo "Not required: $CHECKS_OUTPUT"
-          elif [[ "$CHECKS_OUTPUT" == "pass" ]]; then
+          elif [[ "$CHECKS_OUTPUT" == "true" ]]; then
             echo "$CHECKS_OUTPUT"
           else
             echo "PR state failed? $CHECKS_OUTPUT"
