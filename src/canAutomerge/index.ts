@@ -43,10 +43,11 @@ function checkPatch(config: Config, patch: string, expectedHash: string) {
   if (!file.from || !file.to || file.from !== file.to) {
     throw new Error(`File was renamed`);
   }
-  const agendasFolder = (config.agendasFolder ?? "agendas/").replace(
-    /\/+$/,
-    "",
-  );
+  const agendasFolder =
+    (config.repoSubpath ? config.repoSubpath.replace(/\/+$/, "") + "/" : "") +
+    (config.agendasFolder
+      ? config.agendasFolder.replace(/\/+$/, "") + "/"
+      : "agendas/");
   if (!file.to.startsWith(agendasFolder)) {
     throw new Error(`Not within the '${agendasFolder}' folder: '${file.to}'`);
   }
