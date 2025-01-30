@@ -46,8 +46,8 @@ function checkPatch(config: Config, patch: string, expectedHash: string) {
   const agendasFolder =
     (config.repoSubpath ? config.repoSubpath.replace(/\/+$/, "") + "/" : "") +
     (config.agendasFolder
-      ? config.agendasFolder.replace(/\/+$/, "") + "/"
-      : "agendas/");
+      ? config.agendasFolder.replace(/\/+$/, "")
+      : "agendas");
   if (!file.to.startsWith(agendasFolder)) {
     throw new Error(`Not within the '${agendasFolder}' folder: '${file.to}'`);
   }
