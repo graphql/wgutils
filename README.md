@@ -7,7 +7,7 @@ how to make it even more configurable).
 
 ## Installation
 
-```
+```sh
 yarn add wgutils
 ```
 
@@ -15,7 +15,7 @@ yarn add wgutils
 
 Create an example `wg.config.js` file with the `wgutils init` command:
 
-```
+```sh
 wgutils init
 ```
 
@@ -70,7 +70,7 @@ in `wg.config.js`.
 
 Example: generate the agenda file(s) for April 2024:
 
-```
+```sh
 wgutils agenda gen 2024 4
 ```
 
