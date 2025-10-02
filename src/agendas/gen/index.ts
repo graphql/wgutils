@@ -195,6 +195,7 @@ ${
 `
 }\
 ${annualItems.length > 0 ? `\n${annualItems.map(formatItem).join("\n")}` : ""}
+1. Reminder: [grants available for key initiatives](https://graphql.org/community/foundation/community-grant/) (1m, Host)
 `;
 }
 
