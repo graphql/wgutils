@@ -6,6 +6,7 @@ import { hideBin } from "yargs/helpers";
 import * as agendasCmd from "./agendas/cli.js";
 import * as initCmd from "./init/cli.js";
 import * as canAutomergeCmd from "./canAutomerge/cli.js";
+import * as specCmd from "./spec/cli.js";
 
 yargs(hideBin(process.argv))
   .strict()
@@ -33,6 +34,12 @@ yargs(hideBin(process.argv))
     "Designed to run in CI to see if the given PR (at the given hash) can be auto-merged - be certain to ensure all the necessary checks are in place!",
     canAutomergeCmd.options,
     canAutomergeCmd.run,
+  )
+  .command(
+    "spec",
+    "Tools for working with a specification",
+    (yargs) => specCmd.options(yargs),
+    specCmd.run,
   )
   .demandCommand().argv;
 // Note: the above 'argv' property access actually triggers yargs to start; don't remove it.
