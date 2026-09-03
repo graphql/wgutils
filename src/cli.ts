@@ -41,5 +41,6 @@ yargs(hideBin(process.argv))
     (yargs) => specCmd.options(yargs),
     specCmd.run,
   )
-  .demandCommand().argv;
+  .demandCommand()
+  .showHelpOnFail(true).argv;
 // Note: the above 'argv' property access actually triggers yargs to start; don't remove it.
