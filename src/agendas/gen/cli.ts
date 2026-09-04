@@ -13,6 +13,9 @@ export function options(yargs: Argv) {
 
 export async function run(args: ArgsFromOptions<typeof options>) {
   const config = await loadConfig();
+  if (config.meetings === false) {
+    throw new Error(`This config has meetings disabled`);
+  }
   await generateAgendas(config, {
     year: args.year,
     month: args.month,

@@ -12,14 +12,14 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { toDate } from "date-fns-tz";
-import { Config, Meeting } from "../../interfaces.js";
+import { Meeting } from "../../interfaces.js";
 import { inspect } from "node:util";
-import { AnnualItem } from "../../configSchema.js";
+import { AnnualItem, WgConfig } from "../../configSchema.js";
 
 const EMDASH = "—";
 
 export async function generateAgendas(
-  config: Config,
+  config: WgConfig,
   options: {
     year: string;
     month: string;
@@ -61,7 +61,7 @@ export async function generateAgendas(
   }
 }
 
-function getPaths(config: Config, meeting: Meeting) {
+function getPaths(config: WgConfig, meeting: Meeting) {
   const { year, month, date, filenameFragment } = meeting;
   const ROOT = process.cwd();
   const relativePath = `${config.repoSubpath ? `${config.repoSubpath}/` : ""}${
@@ -95,7 +95,7 @@ function formatItem(item: AnnualItem): string {
 }
 
 function fillMeetingTemplate(
-  config: Config,
+  config: WgConfig,
   meeting: Meeting,
   howToJoin: string | undefined,
   first: boolean,
@@ -199,7 +199,7 @@ ${annualItems.length > 0 ? `\n${annualItems.map(formatItem).join("\n")}` : ""}
 `;
 }
 
-function getPriorMeetings(config: Config, primaryMeeting: Meeting) {
+function getPriorMeetings(config: WgConfig, primaryMeeting: Meeting) {
   // TODO: handle the primary meeting not being the first in a month
   const previousYear =
     primaryMeeting.month === 1 ? primaryMeeting.year - 1 : primaryMeeting.year;
@@ -230,7 +230,7 @@ function processTime(time: string) {
   };
 }
 
-function dateAndTimeMarkdown(config: Config, meeting: Meeting) {
+function dateAndTimeMarkdown(config: WgConfig, meeting: Meeting) {
   const { startHH, startMM, endHH, endMM } = processTime(meeting.time);
   const { year, month, date } = meeting;
   const start = toDate(
@@ -283,7 +283,7 @@ function t(strings: TemplateStringsArray, ...values: Array<string | number>) {
   });
 }
 
-function getWeekdayNumber(weekday: Config["weekday"]): number {
+function getWeekdayNumber(weekday: WgConfig["weekday"]): number {
   const lower = weekday.toLowerCase();
   const std = /^[st]/.test(lower) ? lower.slice(0, 2) : lower[0];
   switch (std) {
@@ -374,7 +374,7 @@ function day2D(year: number, month: number, date: number) {
   });
 }
 
-function getMeetings(config: Config, year: number, month: number) {
+function getMeetings(config: WgConfig, year: number, month: number) {
   const weekday = getWeekdayNumber(config.weekday);
   const meetings: Meeting[] = [];
   if (config.frequency === "monthly") {

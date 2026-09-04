@@ -5,6 +5,7 @@ import { promisify } from "node:util";
 import parseDiffRaw from "parse-diff/parse.js";
 
 import { Config } from "../interfaces.js";
+import { WgConfig } from "../configSchema.js";
 
 const parseDiff = parseDiffRaw as typeof import("parse-diff");
 
@@ -13,7 +14,7 @@ const execAsync = promisify(exec);
 const safeChars =
   /^[^\x00-\x08\x0B\x0C\x0E-\x1F\u200B\u200C\u200D\uFEFF\uE000-\uF8FF]*$/u;
 
-function checkPatch(config: Config, patch: string, expectedHash: string) {
+function checkPatch(config: WgConfig, patch: string, expectedHash: string) {
   const lines = patch.split("\n");
   const hash = lines[0].split(" ")[1];
   if (hash !== expectedHash) {
@@ -89,7 +90,7 @@ function checkPatch(config: Config, patch: string, expectedHash: string) {
 }
 
 export async function checkPr(
-  config: Config,
+  config: WgConfig,
   prNumber: number,
   hash: string,
 ): Promise<void> {
