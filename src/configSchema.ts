@@ -27,37 +27,56 @@ const secondaryMeetingSchema = z.object({
   filenameFragment: z.string().optional(),
 });
 
-export const configSchema = z.object({
+const baseSpec = z.object({
   name: z.string(),
   repoUrl: z.string(),
-  videoConferenceDetails: z.string(),
-  liveNotesUrl: z.string().optional(),
-  repoSubpath: z.string().optional(),
-  description: z.string().optional(),
-  agendaTemplateBottom: z.string().optional(),
-  // linksMarkdown: z.string().optional(),
-  links: z.record(z.string()).optional(),
-  attendeesTemplate: z.string(),
-  /* From dateandtime.com URL query string: p1=...&p2=...&... */
-  dateAndTimeLocations: z.string().optional(),
-  /** In the agenda file name */
-  filenameFragment: z.string().optional(),
-  agendasFolder: z.string().optional(),
-  joiningAMeetingFile: z.string().optional(),
-  // TODO: support more timezones
-  timezone: z.enum(["US/Pacific", "US/Eastern", "UTC", "Europe/Berlin"]),
-  frequency: z.enum(["weekly", "monthly"]),
-  /** If weekly, which meeting is the primary? */
-  primaryN: z.number().optional(),
-  weekday: z.enum(["M", "Tu", "W", "Th", "F", "Sa", "Su"]),
-  /** If frequency="monthly", the nth weekday will be used */
-  nth: z.number().optional(),
-  /** 24h range, e.g. `"09:15-19:45"` */
-  time: z.string(),
-  /** If this WG has annual items, specify them here. */
-  annualItems: z.array(annualItemSchema).optional(),
-  /** If this WG has secondary meetings, specify them here. Only for monthly. */
-  secondaryMeetings: z.array(secondaryMeetingSchema).optional(),
 });
+
+const wgConfigSchema = z.intersection(
+  baseSpec,
+  z.object({
+    meetings: z.optional(z.literal(true)),
+    videoConferenceDetails: z.string(),
+    liveNotesUrl: z.string().optional(),
+    repoSubpath: z.string().optional(),
+    description: z.string().optional(),
+    agendaTemplateBottom: z.string().optional(),
+    // linksMarkdown: z.string().optional(),
+    links: z.record(z.string()).optional(),
+    attendeesTemplate: z.string(),
+    /* From dateandtime.com URL query string: p1=...&p2=...&... */
+    dateAndTimeLocations: z.string().optional(),
+    /** In the agenda file name */
+    filenameFragment: z.string().optional(),
+    agendasFolder: z.string().optional(),
+    joiningAMeetingFile: z.string().optional(),
+    // TODO: support more timezones
+    timezone: z.enum(["US/Pacific", "US/Eastern", "UTC", "Europe/Berlin"]),
+    frequency: z.enum(["weekly", "monthly"]),
+    /** If weekly, which meeting is the primary? */
+    primaryN: z.number().optional(),
+    weekday: z.enum(["M", "Tu", "W", "Th", "F", "Sa", "Su"]),
+    /** If frequency="monthly", the nth weekday will be used */
+    nth: z.number().optional(),
+    /** 24h range, e.g. `"09:15-19:45"` */
+    time: z.string(),
+    /** If this WG has annual items, specify them here. */
+    annualItems: z.array(annualItemSchema).optional(),
+    /** If this WG has secondary meetings, specify them here. Only for monthly. */
+    secondaryMeetings: z.array(secondaryMeetingSchema).optional(),
+  }),
+);
+export type WgConfig = z.infer<typeof wgConfigSchema>;
+
+const noMeetingsWgConfigSchema = z.intersection(
+  baseSpec,
+  z.object({
+    meetings: z.literal(false),
+  }),
+);
+
+export type NoMeetingsWgConfig = z.infer<typeof noMeetingsWgConfigSchema>;
+
+export const configSchema = z.union([wgConfigSchema, noMeetingsWgConfigSchema]);
 
 export type Config = z.infer<typeof configSchema>;

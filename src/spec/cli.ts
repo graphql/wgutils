@@ -5,7 +5,7 @@ import type { ArgsFromOptions } from "../interfaces.js";
 export function options(yargs: Argv) {
   return yargs
     .command(
-      "version --previous <previousTagName> <tagName>",
+      "version [options] <tag>",
       "Generate agenda for particular month",
       versionCmd.options,
       versionCmd.run,

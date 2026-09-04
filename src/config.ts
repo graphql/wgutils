@@ -1,4 +1,4 @@
-import { configSchema, Config } from "./configSchema";
+import { configSchema, Config, WgConfig } from "./configSchema";
 
 export function getConfigPath() {
   return `${process.cwd()}/wg.config.js`;
