@@ -236,10 +236,8 @@ export async function generateContributorList(options: {
   allRows.sort((a, b) => cmp(a.name, b.name));
 
   const output: string[] = [];
-  output.push("| Author | Github");
-  output.push(
-    "| ----------------------------- | ---------------------------------",
-  );
+  output.push("| Author | Github |");
+  output.push("| ------ | ------ |");
   for (const r of allRows) {
     output.push(`| ${r.name} | ${r.gh}`);
   }
