@@ -4,7 +4,7 @@
  * wgutils spec version --previous September2025 September2026
  */
 
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { Config } from "../../interfaces.js";
 import { exists } from "../../utils.js";
 import { format } from "prettier";
@@ -33,13 +33,15 @@ export async function versionSpec(
   options: {
     tag: string;
     previousTag: string;
+    current?: string;
+    force?: boolean;
   },
 ) {
   await validateSpecRepo(config);
   if (!config.spec) {
     throw new Error(`This configuration is not setup for spec publishing`);
   }
-  const { tag, previousTag } = options;
+  const { tag, previousTag, force, current } = options;
   if (!/^[a-zA-Z0-9]+$/.test(tag)) {
     console.error(`Unsupported tag: ${tag}`);
     process.exit(1);
@@ -57,9 +59,9 @@ export async function versionSpec(
     expectedTags.push(`${MONTHS[date.getMonth()]}${date.getFullYear()}`);
     date.setMonth(date.getMonth() + 1);
   }
-  if (!expectedTags.includes(tag)) {
+  if (!force && !expectedTags.includes(tag)) {
     console.error(
-      `Expected tag ('${tag}') to be in '${expectedTags.join("', '")}'`,
+      `Expected tag ('${tag}') to be in '${expectedTags.join("', '")}' (use --force to force)`,
     );
     process.exit(1);
   }
@@ -68,6 +70,12 @@ export async function versionSpec(
   const specDir = `${process.cwd()}/spec`;
   await mkdir(changelogsDir, { recursive: true });
   const changelogsFile = `${changelogsDir}/${tag}.md`;
+  if (!force && (await exists(changelogsFile))) {
+    console.error(
+      `Refusing to overwrite existing changelog ${changelogsFile} (use --force to force)`,
+    );
+    process.exit(1);
+  }
   const hasPreviousChangelog = await exists(
     `${changelogsDir}/${previousTag}.md`,
   );
@@ -79,14 +87,11 @@ export async function versionSpec(
     tag,
     `${process.cwd()}/spec`,
   );
-  const HEAD = execGit(["rev-parse", "HEAD"]).trim();
-  const headDate = execGit(["show", "-s", "--format=%cs", HEAD]).trim();
-  const previousTagDate = execGit([
-    "show",
-    "-s",
-    "--format=%cs",
-    previousTag + "^{commit}",
-  ]).trim();
+  const HEAD = execGit(["rev-parse", current ?? "HEAD"]).trim();
+  const getCommitDate = (commit: string) =>
+    execGit(["show", "-s", "--format=%cs", commit + "^{commit}"]).trim();
+  const headDate = getCommitDate(HEAD);
+  const previousTagDate = getCommitDate(previousTag).trim();
 
   const template = `\
 # ${tag.replace(/([0-9])/, " $1")} Changelog
@@ -146,5 +151,7 @@ yarn wgutils spec version --previous ${previousTag} ${tag}
     trailingComma: "all",
   });
 
-  console.log(formatted);
+  await writeFile(changelogsFile, formatted);
+
+  console.log(`${changelogsFile} written.`);
 }
