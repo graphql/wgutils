@@ -27,9 +27,21 @@ const secondaryMeetingSchema = z.object({
   filenameFragment: z.string().optional(),
 });
 
+const specConfigSchema = z.object({
+  url: z.string({
+    description:
+      "The root URL to the specification, appending `/draft/` to this should view the draft version",
+  }),
+  sentenceName: z.string({
+    description:
+      "How the spec should be presented mid-sentence, e.g. 'the GraphQL specification'",
+  }),
+});
+
 const baseSpec = z.object({
   name: z.string(),
   repoUrl: z.string(),
+  spec: z.optional(specConfigSchema),
 });
 
 const wgConfigSchema = z.intersection(
