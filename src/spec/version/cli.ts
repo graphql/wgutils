@@ -9,14 +9,17 @@ export function options(yargs: Argv) {
     .option("previous", {
       type: "string",
       demandOption: true,
-      description: "The **tag** of the previous release",
+      description: "The tag of the previous release",
     })
     .positional("tag", {
       type: "string",
       demandOption: true,
-      description: "The **tag** for this release",
+      description: "The tag for this release",
     })
-    .example("$0 2024 1", "Generate ");
+    .example(
+      "$0 --previous September2025 September2026",
+      "Generate September2026 spec release",
+    );
 }
 
 export async function run(args: ArgsFromOptions<typeof options>) {
