@@ -11,7 +11,7 @@ import * as specCmd from "./spec/cli.js";
 yargs(hideBin(process.argv))
   .strict()
   .showHelpOnFail(false, "Specify --help for available options")
-  .wrap(yargs.terminalWidth())
+  .wrap(yargs().terminalWidth())
   .parserConfiguration({
     // Last option wins - do NOT make duplicates into arrays!
     "duplicate-arguments-array": false,
