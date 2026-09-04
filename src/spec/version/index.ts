@@ -35,13 +35,14 @@ export async function versionSpec(
     previousTag: string;
     current?: string;
     force?: boolean;
+    debug?: boolean;
   },
 ) {
   await validateSpecRepo(config);
   if (!config.spec) {
     throw new Error(`This configuration is not setup for spec publishing`);
   }
-  const { tag, previousTag, force, current } = options;
+  const { tag, previousTag, force, current, debug } = options;
   if (!/^[a-zA-Z0-9]+$/.test(tag)) {
     console.error(`Unsupported tag: ${tag}`);
     process.exit(1);
@@ -82,12 +83,14 @@ export async function versionSpec(
   const specUrl = config.spec.url.replace(/[/]$/, "");
   const repoUrl = config.repoUrl.replace(/[/]$/, "");
 
-  const contributorList = await generateContributorList(
-    previousTag,
-    tag,
-    `${process.cwd()}/spec`,
-  );
   const HEAD = execGit(["rev-parse", current ?? "HEAD"]).trim();
+  const contributorList = await generateContributorList({
+    config,
+    from: previousTag,
+    to: HEAD,
+    path: `${process.cwd()}/spec`,
+    debug,
+  });
   const getCommitDate = (commit: string) =>
     execGit(["show", "-s", "--format=%cs", commit + "^{commit}"]).trim();
   const headDate = getCommitDate(HEAD);

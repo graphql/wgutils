@@ -6,6 +6,10 @@ import { loadConfig } from "../../config.js";
 
 export function options(yargs: Argv) {
   return yargs
+    .option("debug", {
+      type: "boolean",
+      description: "Verbose logging",
+    })
     .option("force", {
       type: "boolean",
       description: "Overwrite existing changelog",
@@ -37,5 +41,6 @@ export async function run(args: ArgsFromOptions<typeof options>) {
     tag: args.tag,
     force: args.force,
     current: args.current,
+    debug: args.debug,
   });
 }

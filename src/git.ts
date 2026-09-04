@@ -18,3 +18,19 @@ export function execGit(
     die(`git ${argv.join(" ")} failed: ${e}`);
   }
 }
+
+export function revList(range: string, paths: string[]) {
+  const args = ["rev-list", range];
+  if (paths.length) args.push("--", ...paths);
+  const out = execGit(args);
+  return out.split(/\r?\n/).filter(Boolean);
+}
+
+export function parseCoAuthorLines(message: string) {
+  const out = [];
+  const re = /^[ \t]*Co-authored-by:\s*(.+?)\s*<([^>]+)>/gim;
+  let m;
+  while ((m = re.exec(message)))
+    out.push({ name: m[1].trim(), email: m[2].trim() });
+  return out;
+}
