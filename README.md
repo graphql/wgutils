@@ -114,6 +114,13 @@ previous `September2025` tag:
 wgutils spec version --previous September2025 September2026
 ```
 
+For the initial release of a specification, use `--no-previous` so the changelog
+is generated from the first commit in the repository:
+
+```sh
+wgutils spec version --no-previous September2026
+```
+
 Use `--current` to compare against a commit other than `HEAD`. Use `--force` to
 allow an unexpected tag name (e.g. out of date) and/or overwrite an existing changelog. Use `--debug`
 for verbose logging.

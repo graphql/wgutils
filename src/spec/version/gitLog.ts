@@ -19,10 +19,10 @@ function markdownTableEscape(str: string) {
     .replace(/<([a-zA-Z]+(?:[ >]|\/>))/g, "&lt;$1");
 }
 
-export async function gitLog(previousTag: string, HEAD: string, path: string) {
+export async function gitLog(previous: string, HEAD: string, path: string) {
   const args = [
     "log",
-    `${previousTag}..${HEAD}`,
+    `${previous}..${HEAD}`,
     `--format=[%h](https://github.com/graphql/graphql-spec/commit/%H)${DIVIDER}%s${DIVIDER}%an <%ae> %(trailers:key=Co-authored-by,valueonly,separator=%x20)`,
     "--",
     relative(process.cwd(), path),
