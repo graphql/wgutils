@@ -1,15 +1,29 @@
 import { relative } from "node:path";
 import { execGit } from "../../git";
 
+const DIVIDER = "§FIELD_DIVIDE§";
+
+function markdownTableEscape(str: string) {
+  return str.replace(/[|]/g, "\\$&");
+}
+
 export async function gitLog(previousTag: string, HEAD: string, path: string) {
   const args = [
     "log",
     `${previousTag}..${HEAD}`,
-    "--format=| [%h](https://github.com/graphql/graphql-spec/commit/%H) | %s | %an <%ae> %(trailers:key=Co-authored-by,valueonly,separator=%x20)",
+    `--format=[%h](https://github.com/graphql/graphql-spec/commit/%H)${DIVIDER}%s${DIVIDER}%an <%ae> %(trailers:key=Co-authored-by,valueonly,separator=%x20)`,
     "--",
     relative(process.cwd(), path),
   ];
-  const result = execGit(args);
+  const lines = execGit(args);
+  const result = lines
+    .trim()
+    .split(/\r?\n/)
+    .map(
+      (l) =>
+        "| " + l.split(DIVIDER).map(markdownTableEscape).join(" | ") + " |",
+    )
+    .join("\n");
   return `
 Listed in reverse-chronological order (latest commit on top).
 
