@@ -4,7 +4,7 @@
  * wgutils spec version --previous September2025 September2026
  */
 
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { Config } from "../../interfaces.js";
 import { exists } from "../../utils.js";
 import { format } from "prettier";
@@ -103,6 +103,23 @@ export async function versionSpec(
     throw new Error(`There's no previous changelog matching '${previousTag}'?`);
   }
 
+  const newEdition = `${
+    // This should cover us until 2999... it's probably someone else's problem by then
+    tag.replace(/2/, " 2")
+  } Edition`;
+  const mainFileText = await readFile(config.spec.mainFile, "utf8");
+  const updatedMainFileText = mainFileText.replace(
+    /Current Working Draft/i,
+    newEdition,
+  );
+  if (mainFileText === updatedMainFileText) {
+    if (!mainFileText.includes(newEdition)) {
+      throw new Error("'Current Working Draft' text not found!");
+    }
+  } else {
+    await writeFile(config.spec.mainFile, updatedMainFileText);
+  }
+
   const since =
     previousTag == null ? "before initial spec cut" : "since last spec cut";
 
@@ -148,9 +165,9 @@ ${contributorList}
 
 ## Changeset
 
-- [Github: all Accepted RFC PRs merged ${since}](${repoUrl}/pulls?q=is%3Apr+is%3Amerged+base%3Amain+merged%3A${previousTagDate}..${headDate}+label%3A%22%F0%9F%8F%81+Accepted+%28RFC+3%29%22)
-- [Github: all Editorial PRs merged ${since}](${repoUrl}/pulls?page=1&q=is%3Apr+is%3Amerged+base%3Amain+merged%3A${previousTagDate}..${headDate}+label%3A%22%E2%9C%8F%EF%B8%8F+Editorial%22)
-- [Github: all changes ${since}](${repoUrl}/compare/${previousGitRef}...${HEAD})
+- [GitHub: all Accepted RFC PRs merged ${since}](${repoUrl}/pulls?q=is%3Apr+is%3Amerged+base%3Amain+merged%3A${previousTagDate}..${headDate}+label%3A%22%F0%9F%8F%81+Accepted+%28RFC+3%29%22)
+- [GitHub: all Editorial PRs merged ${since}](${repoUrl}/pulls?page=1&q=is%3Apr+is%3Amerged+base%3Amain+merged%3A${previousTagDate}..${headDate}+label%3A%22%E2%9C%8F%EF%B8%8F+Editorial%22)
+- [GitHub: all changes ${since}](${repoUrl}/compare/${previousGitRef}...${HEAD})
 
 ${await gitLog(previousGitRef, HEAD, specDir)}
 
@@ -160,7 +177,7 @@ ${
     : `\
 ## Diff
 
-[Github: diff from last spec cut](${repoUrl}/compare/${previousGitRef}...${HEAD}?w=1)
+[GitHub: diff from last spec cut](${repoUrl}/compare/${previousGitRef}...${HEAD}?w=1)
 `
 }
 ## Notes
@@ -180,5 +197,7 @@ yarn wgutils spec version ${previousTag == null ? `--no-previous` : `--previous 
 
   await writeFile(changelogsFile, formatted);
 
-  console.log(`${changelogsFile} written.`);
+  console.log(
+    `${changelogsFile} written; commit, add editors notes and similar, and then `,
+  );
 }

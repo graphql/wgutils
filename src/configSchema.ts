@@ -36,6 +36,9 @@ const specConfigSchema = z.object({
     description:
       "How the spec should be presented mid-sentence, e.g. 'the GraphQL specification'",
   }),
+  mainFile: z.string({
+    description: "The main spec file, e.g. spec/GraphQL.md",
+  }),
 });
 
 const baseSpec = z.object({
