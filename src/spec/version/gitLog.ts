@@ -52,7 +52,9 @@ git ${args.map(escapeArgumentForMarkdown).join(" ")}
 `;
 }
 
-function escapeArgumentForMarkdown(arg: string): string {
+function escapeArgumentForMarkdown(rawArg: string): string {
+  // Make it more legible
+  const arg = rawArg.replaceAll(DIVIDER, " | ");
   if (/^[-a-zA-Z0-9_./]+$/.test(arg)) {
     return arg;
   } else {
