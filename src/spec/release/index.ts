@@ -4,7 +4,7 @@
  * wgutils spec release September2026
  */
 
-import { mkdir, writeFile, readFile } from "node:fs/promises";
+import { writeFile, readFile } from "node:fs/promises";
 import { Config } from "../../interfaces.js";
 import { exists } from "../../utils.js";
 import { validateSpecRepo } from "../validateRepo.js";
