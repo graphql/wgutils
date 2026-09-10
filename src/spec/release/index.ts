@@ -61,6 +61,7 @@ export async function releaseSpec(
   if (HEAD !== tag) {
     const newChangelogText = changelogText.replaceAll(HEAD, tag);
     await writeFile(changelogsFile, newChangelogText);
+    execGit(["add", changelogsFile]);
     execGit(["commit", "-m", "Update reference to match tag"]);
   }
   execGit(["tag", tag, "-m", newEdition]);
@@ -70,6 +71,7 @@ export async function releaseSpec(
     "Current Working Draft",
   );
   await writeFile(config.spec.mainFile, updatedMainFileText);
+  execGit(["add", config.spec.mainFile]);
   execGit(["commit", "-m", "Next working draft"]);
 
   console.log(`Tag ${tag} created; to release: 'git push --follow-tags'`);
