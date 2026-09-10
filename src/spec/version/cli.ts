@@ -17,7 +17,8 @@ export function options(yargs: Argv) {
     .option("previous", {
       type: "string",
       demandOption: true,
-      description: "The tag of the previous release",
+      description:
+        "The tag of the previous release; use --no-previous for an initial release",
     })
     .option("current", {
       type: "string",
@@ -31,6 +32,10 @@ export function options(yargs: Argv) {
     .example(
       "$0 --previous September2025 September2026",
       "Generate September2026 spec release",
+    )
+    .example(
+      "$0 --no-previous September2026",
+      "Generate an initial September2026 spec release",
     );
 }
 
