@@ -4,7 +4,19 @@ import { execGit } from "../../git";
 const DIVIDER = "§FIELD_DIVIDE§";
 
 function markdownTableEscape(str: string) {
-  return str.replace(/[|]/g, "\\$&");
+  return str.replace(
+    /[&<>|]|\n|\r\n?/g,
+    (t) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "|": "&#124;",
+        "\n": "<br/>",
+        "\r\n": "<br/>",
+        "\r": "<br/>",
+      })[t] ?? t,
+  );
 }
 
 export async function gitLog(previousTag: string, HEAD: string, path: string) {
