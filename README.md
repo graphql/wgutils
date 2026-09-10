@@ -27,6 +27,13 @@ Main options:
 
 - `name` - name of the WG, e.g. `"GraphQL WG"`
 - `repoUrl` - the root URL to the repo, e.g. `"https://github.com/graphql/graphql-wg"`
+- `meetings` (_optional_) - set to `false` for repositories that do not manage meetings, such as spec-only repositories
+- `spec` (_optional_) - required for spec publishing/versioning commands:
+  - `url` - the root URL to the specification; appending `/draft/` should view the draft version
+  - `sentenceName` - how the spec should be presented mid-sentence, e.g. `"the GraphQL specification"`
+
+Meeting options, required unless `meetings: false` is set:
+
 - `videoConferenceDetails` - the video conference URL; gets interpolated into the markdown, so if additional details (e.g. password) are required include them indented after a newline
 - `liveNotesUrl` - the URL to the Google Doc that is used for the live notes
 - `attendeesTemplate` - a markdown table for your attendees to populate
@@ -63,6 +70,26 @@ Options that are unlikely to be overridden for new projects:
 - `repoSubpath` (_optional_) - if the `agendas`/etc folder is not in the root, the relative path to it. Unlikely you'll need this.
 - `agendasFolder` (_optional_) - the name of the folder the agendas are stored in (i.e. `"agendas"`), relative to `repoSubpath` (or the repo root)
 
+For a repository that only manages a specification and does not manage meetings,
+the configuration can omit all meeting options:
+
+```js
+// @ts-check
+
+/** @type {import('wgutils').Config} */
+const config = {
+  name: "GraphQL Specification",
+  repoUrl: "https://github.com/graphql/graphql-spec",
+  meetings: false,
+  spec: {
+    url: "https://spec.graphql.org",
+    sentenceName: "the GraphQL specification",
+  },
+};
+
+module.exports = config;
+```
+
 ## wgutils agenda gen
 
 Generates agenda files for the given year and month, according to the settings
@@ -72,6 +99,27 @@ Example: generate the agenda file(s) for April 2024:
 
 ```sh
 wgutils agenda gen 2024 4
+```
+
+## wgutils spec version
+
+Generates a changelog for a new specification version in `changelogs/<tag>.md`.
+This command requires `spec.url` and `spec.sentenceName` in `wg.config.js` (use
+with `meetings: false` for spec-only repos).
+
+Example: generate the `September2026` spec changelog, comparing against the
+previous `September2025` tag:
+
+```sh
+wgutils spec version --previous September2025 September2026
+```
+
+Use `--current` to compare against a commit other than `HEAD`. Use `--force` to
+allow an unexpected tag name (e.g. out of date) and/or overwrite an existing changelog. Use `--debug`
+for verbose logging.
+
+```sh
+wgutils spec version --previous October2021 --current f29fbcd2ab5af763fce7ad62896eb62465a669b3 September2025 --force --debug
 ```
 
 ## wgutils can-automerge
