@@ -125,7 +125,7 @@ ${contributorList}
 
 ## Notable contributions
 
-<!-- TODO: pull out notable changes -->
+<!-- TODO: pull out notable changes from the full list above -->
 
 ## Changeset
 
