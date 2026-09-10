@@ -32,7 +32,7 @@ export async function versionSpec(
   config: Config,
   options: {
     tag: string;
-    previousTag: string;
+    previousTag: string | false;
     current?: string;
     force?: boolean;
     debug?: boolean;
@@ -42,12 +42,13 @@ export async function versionSpec(
   if (!config.spec) {
     throw new Error(`This configuration is not setup for spec publishing`);
   }
-  const { tag, previousTag, force, current, debug } = options;
+  const { tag, previousTag: rawPT, force, current, debug } = options;
+  const previousTag = rawPT && rawPT !== "-" ? rawPT : null;
   if (!/^[a-zA-Z0-9]+$/.test(tag)) {
     console.error(`Unsupported tag: ${tag}`);
     process.exit(1);
   }
-  if (!/^[a-zA-Z0-9]+$/.test(previousTag)) {
+  if (previousTag != null && !/^[a-zA-Z0-9]+$/.test(previousTag)) {
     console.error(`Unsupported previous tag: ${tag}`);
     process.exit(1);
   }
@@ -77,16 +78,18 @@ export async function versionSpec(
     );
     process.exit(1);
   }
-  const hasPreviousChangelog = await exists(
-    `${changelogsDir}/${previousTag}.md`,
-  );
+  const hasPreviousChangelog =
+    previousTag != null && (await exists(`${changelogsDir}/${previousTag}.md`));
   const specUrl = config.spec.url.replace(/[/]$/, "");
   const repoUrl = config.repoUrl.replace(/[/]$/, "");
 
   const HEAD = execGit(["rev-parse", current ?? "HEAD"]).trim();
+  const previousGitRef =
+    previousTag ??
+    execGit(["rev-list", "--first-parent", "--max-parents=0", HEAD]).trim();
   const contributorList = await generateContributorList({
     config,
-    from: previousTag,
+    from: previousGitRef,
     to: HEAD,
     path: `${process.cwd()}/spec`,
     debug,
@@ -94,18 +97,34 @@ export async function versionSpec(
   const getCommitDate = (commit: string) =>
     execGit(["show", "-s", "--format=%cs", commit + "^{commit}"]).trim();
   const headDate = getCommitDate(HEAD);
-  const previousTagDate = getCommitDate(previousTag).trim();
+  const previousTagDate = getCommitDate(previousGitRef).trim();
+
+  if (previousTag != null && !hasPreviousChangelog) {
+    throw new Error(`There's no previous changelog matching '${previousTag}'?`);
+  }
+
+  const since =
+    previousTag == null ? "before initial spec cut" : "since last spec cut";
 
   const template = `\
 # ${tag.replace(/([0-9])/, " $1")} Changelog
 
+${
+  previousTag == null
+    ? `\
+This describes the set of changes incorporated into the initial version of
+${config.spec.sentenceName}. It's intended to ease the review of the specification for
+`
+    : `\
 This describes the set of changes since the last edition of
 ${config.spec.sentenceName}, [${previousTag}](${specUrl}/${previousTag}/)${
-    hasPreviousChangelog
-      ? ` (see [prior
+        hasPreviousChangelog
+          ? ` (see [prior
 changelog](./${previousTag}.md))`
-      : ""
-  }. It's intended to ease the review of changes since the last edition for
+          : ""
+      }. It's intended to ease the review of changes since the last edition for
+`
+}\
 reviewers or curious readers, but is not normative. Please read the
 [specification document](${specUrl}/${tag}/) itself for
 full detail and context.
@@ -129,22 +148,27 @@ ${contributorList}
 
 ## Changeset
 
-- [Github: all Accepted RFC PRs merged since last spec cut](${repoUrl}/pulls?q=is%3Apr+is%3Amerged+base%3Amain+merged%3A${previousTagDate}..${headDate}+label%3A%22%F0%9F%8F%81+Accepted+%28RFC+3%29%22)
-- [Github: all Editorial PRs merged since last spec cut](${repoUrl}/pulls?page=1&q=is%3Apr+is%3Amerged+base%3Amain+merged%3A${previousTagDate}..${headDate}+label%3A%22%E2%9C%8F%EF%B8%8F+Editorial%22)
-- [Github: all changes since last spec cut](${repoUrl}/compare/${previousTag}...${HEAD})
+- [Github: all Accepted RFC PRs merged ${since}](${repoUrl}/pulls?q=is%3Apr+is%3Amerged+base%3Amain+merged%3A${previousTagDate}..${headDate}+label%3A%22%F0%9F%8F%81+Accepted+%28RFC+3%29%22)
+- [Github: all Editorial PRs merged ${since}](${repoUrl}/pulls?page=1&q=is%3Apr+is%3Amerged+base%3Amain+merged%3A${previousTagDate}..${headDate}+label%3A%22%E2%9C%8F%EF%B8%8F+Editorial%22)
+- [Github: all changes ${since}](${repoUrl}/compare/${previousGitRef}...${HEAD})
 
-${await gitLog(previousTag, HEAD, specDir)}
+${await gitLog(previousGitRef, HEAD, specDir)}
 
+${
+  previousTag == null
+    ? ""
+    : `\
 ## Diff
 
-[Github: diff from last spec cut](${repoUrl}/compare/${previousTag}...${HEAD}?w=1)
-
+[Github: diff from last spec cut](${repoUrl}/compare/${previousGitRef}...${HEAD}?w=1)
+`
+}
 ## Notes
 
 This changeset was generated with the help of
 
 \`\`\`sh
-yarn wgutils spec version --previous ${previousTag} --current ${HEAD} ${tag}
+yarn wgutils spec version ${previousTag == null ? `--no-previous` : `--previous ${previousTag}`} --current ${HEAD} ${tag}
 \`\`\`
 `;
 
