@@ -4,6 +4,15 @@ import {
 } from "node:child_process";
 import { die } from "./utils.js";
 
+/** Do not use this in security sensitive places; it's just for presentation */
+function printArg(arg: string): string {
+  if (/^[-a-zA-Z0-9]+$/.test(arg)) {
+    return arg;
+  } else {
+    return `'${arg.replaceAll("'", `'"'"'`)}'`;
+  }
+}
+
 export function execGit(
   argv: string[],
   opts: Partial<ExecFileOptionsWithStringEncoding> = {},
@@ -15,7 +24,10 @@ export function execGit(
       ...opts,
     });
   } catch (e) {
-    die(`git ${argv.join(" ")} failed: ${e}`);
+    const { stdout, stderr } = e as any;
+    if (stdout) console.log(stdout);
+    if (stderr) console.error(stderr);
+    die(`git ${argv.map(printArg).join(" ")} failed: ${e}`);
   }
 }
 
