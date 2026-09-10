@@ -197,5 +197,7 @@ yarn wgutils spec version ${previousTag == null ? `--no-previous` : `--previous 
 
   await writeFile(changelogsFile, formatted);
 
-  console.log(`${changelogsFile} written.`);
+  console.log(
+    `${changelogsFile} written; commit, add editors notes and similar, and then `,
+  );
 }

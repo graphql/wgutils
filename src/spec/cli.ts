@@ -1,14 +1,21 @@
 import type { Argv } from "yargs";
 import * as versionCmd from "./version/cli.js";
+import * as releaseCmd from "./release/cli.js";
 import type { ArgsFromOptions } from "../interfaces.js";
 
 export function options(yargs: Argv) {
   return yargs
     .command(
       "version [options] <tag>",
-      "Generate agenda for particular month",
+      "Create a named version of the spec ready for voting",
       versionCmd.options,
       versionCmd.run,
+    )
+    .command(
+      "release <tag>",
+      "Release the spec once voting completes",
+      releaseCmd.options,
+      releaseCmd.run,
     )
     .demandCommand();
 }
