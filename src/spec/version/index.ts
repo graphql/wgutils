@@ -165,9 +165,9 @@ ${contributorList}
 
 ## Changeset
 
-- [Github: all Accepted RFC PRs merged ${since}](${repoUrl}/pulls?q=is%3Apr+is%3Amerged+base%3Amain+merged%3A${previousTagDate}..${headDate}+label%3A%22%F0%9F%8F%81+Accepted+%28RFC+3%29%22)
-- [Github: all Editorial PRs merged ${since}](${repoUrl}/pulls?page=1&q=is%3Apr+is%3Amerged+base%3Amain+merged%3A${previousTagDate}..${headDate}+label%3A%22%E2%9C%8F%EF%B8%8F+Editorial%22)
-- [Github: all changes ${since}](${repoUrl}/compare/${previousGitRef}...${HEAD})
+- [GitHub: all Accepted RFC PRs merged ${since}](${repoUrl}/pulls?q=is%3Apr+is%3Amerged+base%3Amain+merged%3A${previousTagDate}..${headDate}+label%3A%22%F0%9F%8F%81+Accepted+%28RFC+3%29%22)
+- [GitHub: all Editorial PRs merged ${since}](${repoUrl}/pulls?page=1&q=is%3Apr+is%3Amerged+base%3Amain+merged%3A${previousTagDate}..${headDate}+label%3A%22%E2%9C%8F%EF%B8%8F+Editorial%22)
+- [GitHub: all changes ${since}](${repoUrl}/compare/${previousGitRef}...${HEAD})
 
 ${await gitLog(previousGitRef, HEAD, specDir)}
 
@@ -177,7 +177,7 @@ ${
     : `\
 ## Diff
 
-[Github: diff from last spec cut](${repoUrl}/compare/${previousGitRef}...${HEAD}?w=1)
+[GitHub: diff from last spec cut](${repoUrl}/compare/${previousGitRef}...${HEAD}?w=1)
 `
 }
 ## Notes
