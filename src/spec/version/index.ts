@@ -4,7 +4,7 @@
  * wgutils spec version --previous September2025 September2026
  */
 
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { Config } from "../../interfaces.js";
 import { exists } from "../../utils.js";
 import { format } from "prettier";
@@ -101,6 +101,23 @@ export async function versionSpec(
 
   if (previousTag != null && !hasPreviousChangelog) {
     throw new Error(`There's no previous changelog matching '${previousTag}'?`);
+  }
+
+  const newEdition = `${
+    // This should cover us until 2999... it's probably someone else's problem by then
+    tag.replace(/2/, " 2")
+  } Edition`;
+  const mainFileText = await readFile(config.spec.mainFile, "utf8");
+  const updatedMainFileText = mainFileText.replace(
+    /Current Working Draft/i,
+    newEdition,
+  );
+  if (mainFileText === updatedMainFileText) {
+    if (!mainFileText.includes(newEdition)) {
+      throw new Error("'Current Working Draft' text not found!");
+    }
+  } else {
+    await writeFile(config.spec.mainFile, updatedMainFileText);
   }
 
   const since =
