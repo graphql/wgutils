@@ -116,16 +116,16 @@ full detail and context.
 
 ## Contributors
 
-Anyone is welcome to join working group meetings and contribute to GraphQL. See
+Anyone is welcome to join working group meetings and contribute to ${config.spec.sentenceName}. See
 [Contributing.md](${repoUrl}/blob/main/CONTRIBUTING.md)
 for more information. Thank you to these community members for their technical
-contribution to this edition of the GraphQL specification.
+contribution to this edition of ${config.spec.sentenceName}.
 
 ${contributorList}
 
 ## Notable contributions
 
-<!-- TODO: pull out notable changes -->
+<!-- TODO: pull out notable changes from the full list above -->
 
 ## Changeset
 
@@ -144,7 +144,7 @@ ${await gitLog(previousTag, HEAD, specDir)}
 This changeset was generated with the help of
 
 \`\`\`sh
-yarn wgutils spec version --previous ${previousTag} ${tag}
+yarn wgutils spec version --previous ${previousTag} --current ${HEAD} ${tag}
 \`\`\`
 `;
 
