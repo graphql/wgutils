@@ -209,7 +209,10 @@ yarn wgutils spec version ${previousTag == null ? `--no-previous` : `--previous 
 
   await writeFile(changelogsFile, formatted);
 
+  execGit(["add", config.spec.mainFile, changelogsFile]);
+  execGit(["commit", "-m", `Prepare for ${tag} release`]);
+
   console.log(
-    `${changelogsFile} written. Next: commit, add editors notes and similar, commit again, review in full, then raise a PR and send to the TSC for approval.`,
+    `${changelogsFile} written, spec title updated, and all committed.\n\nNext: add editors notes and similar, review in full, commit, then raise a PR and send to the TSC for approval.`,
   );
 }
