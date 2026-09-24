@@ -9,17 +9,15 @@ import { Config } from "../../interfaces.js";
 import { exists } from "../../utils.js";
 import { validateSpecRepo } from "../validateRepo.js";
 import { execGit } from "../../git.js";
+import { buildSpecRelease } from "../build/index.js";
 
 export async function releaseSpec(
-  config: Config,
+  inConfig: Config,
   options: {
     tag: string;
   },
 ) {
-  await validateSpecRepo(config);
-  if (!config.spec) {
-    throw new Error(`This configuration is not setup for spec publishing`);
-  }
+  const config = await validateSpecRepo(inConfig);
   const { tag } = options;
 
   const tags = execGit(["tag", "-l"])

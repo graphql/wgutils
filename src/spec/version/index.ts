@@ -29,7 +29,7 @@ const MONTHS = [
 ];
 
 export async function versionSpec(
-  config: Config,
+  inConfig: Config,
   options: {
     tag: string;
     previousTag: string | false | undefined;
@@ -38,10 +38,7 @@ export async function versionSpec(
     debug?: boolean;
   },
 ) {
-  await validateSpecRepo(config);
-  if (!config.spec) {
-    throw new Error(`This configuration is not setup for spec publishing`);
-  }
+  const config = await validateSpecRepo(inConfig);
   const { tag, previousTag: rawPT, force, current, debug } = options;
   const previousTag = (() => {
     if (rawPT === false || rawPT === "-") {

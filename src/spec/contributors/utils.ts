@@ -1,4 +1,4 @@
-import { Config } from "../../configSchema.js";
+import { Config, SpecConfig } from "../../configSchema.js";
 import { revList, parseCoAuthorLines } from "../../git.js";
 import {
   loginFromNoreply,
@@ -20,16 +20,13 @@ function sanitizeDisplayName(raw: string, fallback: string) {
 }
 
 export async function generateContributorList(options: {
-  config: Config;
+  config: SpecConfig;
   from: string;
   to: string;
   path: string;
   debug?: boolean;
 }) {
   const { from, to, path, debug: DEBUG = false, config } = options;
-  if (!config.spec) {
-    throw new Error("Please set the 'spec: {...}' entry in wg.config.ts");
-  }
   // ---------- flags / utils
   const logd = (...xs: any[]) => {
     if (DEBUG) console.error(...xs);
