@@ -62,6 +62,11 @@ export async function releaseSpec(
     execGit(["add", changelogsFile]);
     execGit(["commit", "-m", "Update reference to match tag"]);
   }
+
+  const filename = await buildSpecRelease(config, tag);
+  execGit(["add", filename]);
+  execGit(["commit", "-m", `Build HTML for ${tag}`]);
+
   // `-m` implies `-a` but this makes it explicit
   execGit(["tag", tag, "-am", newEdition]);
 

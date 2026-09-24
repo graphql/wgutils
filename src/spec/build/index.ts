@@ -34,7 +34,9 @@ export async function buildSpecRelease(
   console.log(`Building spec release ${tag}`);
   if (!test) mkdirSync(`published/${tag}`, { recursive: true });
   const output = await specMd(config, tag);
-  write(`published/${tag}/index.html`, output, test);
+  const filename = `published/${tag}/index.html`;
+  write(filename, output, test);
+  return filename;
 }
 
 export async function buildSpec(
