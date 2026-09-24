@@ -1,10 +1,12 @@
 import type { Argv } from "yargs";
+import * as buildCmd from "./build/cli.js";
 import * as versionCmd from "./version/cli.js";
 import * as releaseCmd from "./release/cli.js";
 import type { ArgsFromOptions } from "../interfaces.js";
 
 export function options(yargs: Argv) {
   return yargs
+    .command("build", "Build the spec", buildCmd.options, buildCmd.run)
     .command(
       "version [options] <tag>",
       "Create a named version of the spec ready for voting",
