@@ -1,34 +1,67 @@
+import { mkdirSync, writeFileSync } from "fs";
+import { execGit, $ } from "../../git";
 import { Config } from "../../interfaces.js";
+import { validateSpecRepo } from "../validateRepo";
 
-export function buildSpec(
+export async function buildSpec(
   config: Config,
   options: {
     test?: boolean;
   },
 ) {
+  await validateSpecRepo(config);
+  if (!config.spec) {
+    throw new Error(`This configuration is not setup for spec publishing`);
+  }
+
   console.log(`Build the spec${options.test ? " (test)" : ""}`);
-  /*
-#!/bin/bash -e
-# This script publishes the GraphQL specification document to the web.
+  // This script publishes the GraphQL specification document to the web.
 
-# Determine if this is a tagged release
-GITTAG=$(git tag --points-at HEAD)
+  // Determine if this is a tagged release
+  const GITTAG = execGit(["tag", "--points-at", "HEAD"]).trim();
 
-# Build the specification draft document
-echo "Building spec draft"
-mkdir -p public/draft
-spec-md --metadata spec/metadata.json --githubSource "https://github.com/graphql/graphql-spec/blame/main/" spec/GraphQL.md > public/draft/index.html
+  function specMd(
+    options: {
+      ref: string;
+    },
+    ...positionals: string[]
+  ) {
+    return $("node_modules/.bin/spec-md", [
+      "--metadata",
+      "spec/metadata.json",
+      "--githubSource",
+      `${config.repoUrl}/blame/${options.ref}/`,
+      ...positionals,
+    ]);
+  }
 
-# If this is a tagged commit, also build the release document
-if [ -n "$GITTAG" ]; then
-  echo "Building spec release $GITTAG"
-  mkdir -p "public/$GITTAG"
-  spec-md --metadata spec/metadata.json --githubSource "https://github.com/graphql/graphql-spec/blame/$GITTAG/" spec/GraphQL.md > "public/$GITTAG/index.html"
-fi
+  // Build the specification draft document
+  console.log("Building spec draft");
+  mkdirSync("public/draft", { recursive: true });
+  const output = specMd({ ref: "main" }, config.spec.mainFile);
+  writeFileSync("public/draft/index.html", output);
 
-# Create the index file
-echo "Rebuilding: / (index)"
-HTML="<html>
+  // If this is a tagged commit, also build the release document
+  if (GITTAG) {
+    console.log(`Building spec release ${GITTAG}`);
+    mkdirSync(`public/${GITTAG}`, { recursive: true });
+    const output = specMd({ ref: GITTAG }, `spec/GraphQL.md`);
+    writeFileSync(`public/$GITTAG/index.html`, output);
+  }
+
+  // Create the index file
+  console.log("Rebuilding: / (index)");
+
+  // Include latest draft
+  const GITDATE = execGit([
+    "show",
+    "-s",
+    "--format=%cd",
+    "--date=format:%a, %b %-d, %Y",
+    "HEAD",
+  ]);
+
+  let HTML = `<html>
   <head>
     <title>GraphQL Specification Versions</title>
     <style>
@@ -64,41 +97,52 @@ HTML="<html>
   </head>
   <body>
     <h1>GraphQL</h1>
-    <table>"
-
-# Include latest draft
-GITDATE=$(git show -s --format=%cd --date=format:"%a, %b %-d, %Y" HEAD)
-HTML="$HTML
+    <table>
     <tr>
       <td><em>Prerelease</em></td>
-      <td><a href=\"./draft\" keep-hash>Working Draft</a></td>
-      <td>$GITDATE</td>
+      <td><a href="./draft" keep-hash>Working Draft</a></td>
+      <td>${GITDATE}</td>
       <td></td>
-    </tr>"
+    </tr>
+  `;
 
-GITHUB_RELEASES="https://github.com/graphql/graphql-spec/releases/tag"
-for GITTAG in $(git tag -l --sort='-*committerdate') ; do
-  VERSIONYEAR=${GITTAG: -4}
-  TAGTITLE="${GITTAG%$VERSIONYEAR} $VERSIONYEAR"
-  TAGGEDCOMMIT=$(git rev-list -1 "$GITTAG")
-  GITDATE=$(git show -s --format=%cd --date=format:"%a, %b %-d, %Y" $TAGGEDCOMMIT)
+  const GITHUB_RELEASES = `${config.repoUrl}/releases/tag`;
+  const tags = execGit(["tag", "-l", "--sort=-*committerdate"])
+    .trim()
+    .split(/\s+/);
+  let HAS_LATEST_RELEASE = false;
+  for (const GITTAG of tags) {
+    const VERSIONYEAR = GITTAG.slice(-4);
+    const TAGTITLE = `${GITTAG.slice(0, -4)} ${VERSIONYEAR}`;
+    const TAGGEDCOMMIT = execGit(["rev-list", "-1", GITTAG]).trim();
+    const GITDATE = execGit([
+      "show",
+      "-s",
+      "--format=%cd",
+      "--date=format:%a, %b %-d, %Y",
+      TAGGEDCOMMIT,
+    ]).trim();
 
-  HTML="$HTML
-    <tr>"
+    HTML += `
+    <tr>`;
 
-  [ -z $HAS_LATEST_RELEASE ] && HTML="$HTML
-      <td><em>Latest Release</em></td>" || HTML="$HTML
-      <td></td>"
-  HAS_LATEST_RELEASE=1
+    if (!HAS_LATEST_RELEASE) {
+      HTML += `
+      <td><em>Latest Release</em></td>`;
+      HAS_LATEST_RELEASE = true;
+    } else {
+      HTML += `
+      <td></td>`;
+    }
 
-  HTML="$HTML
-      <td><a href=\"./$GITTAG\" keep-hash>$TAGTITLE</a></td>
-      <td>$GITDATE</td>
-      <td><a href=\"$GITHUB_RELEASES/$GITTAG\">Release Notes</a></td>
-    </tr>"
-done
+    HTML += `
+      <td><a href="./${GITTAG}" keep-hash>${TAGTITLE}</a></td>
+      <td>${GITDATE}</td>
+      <td><a href="${GITHUB_RELEASES}/${GITTAG}">Release Notes</a></td>
+    </tr>`;
+  }
 
-HTML="$HTML
+  HTML += `
     </table>
     <script>
       var links = document.getElementsByTagName('a');
@@ -110,8 +154,7 @@ HTML="$HTML
       }
     </script>
   </body>
-</html>"
+</html>`;
 
-echo $HTML > "public/index.html"
-*/
+  writeFileSync("public/index.html", HTML);
 }

@@ -17,8 +17,16 @@ export function execGit(
   argv: string[],
   opts: Partial<ExecFileOptionsWithStringEncoding> = {},
 ): string {
+  return $("git", argv, opts);
+}
+
+export function $(
+  commandName: string,
+  argv: string[],
+  opts: Partial<ExecFileOptionsWithStringEncoding> = {},
+): string {
   try {
-    return execFileSync("git", argv, {
+    return execFileSync(commandName, argv, {
       encoding: "utf8",
       maxBuffer: 1024 * 1024 * 400,
       ...opts,
@@ -27,7 +35,7 @@ export function execGit(
     const { stdout, stderr } = e as any;
     if (stdout) console.log(stdout);
     if (stderr) console.error(stderr);
-    die(`git ${argv.map(printArg).join(" ")} failed: ${e}`);
+    die(`${commandName} ${argv.map(printArg).join(" ")} failed: ${e}`);
   }
 }
 
