@@ -18,7 +18,7 @@ async function specMd(config: SpecConfig, ref: string) {
   ]);
 }
 
-function write(file: string, contents: string, test = false) {
+function write(file: string, contents: string, test: boolean) {
   const buffer = Buffer.from(contents, "utf8");
   console.log(
     `${file}: ${buffer.length} bytes${test ? " (test)" : " (written)"}`,
@@ -45,7 +45,7 @@ export async function buildSpec(
     test?: boolean;
   },
 ) {
-  const { test } = options;
+  const { test = false } = options;
   const config = await validateSpecRepo(rawConfig);
   const {
     repoUrl,
@@ -64,7 +64,7 @@ export async function buildSpec(
   console.log("Building spec draft");
   if (!test) mkdirSync("public/draft", { recursive: true });
   const output = await specMd(config, "main");
-  write("public/draft/index.html", output);
+  write("public/draft/index.html", output, test);
 
   // If this is a tagged commit, also build the release document
   if (GITTAG) {
@@ -197,5 +197,5 @@ export async function buildSpec(
 </html>
 `;
 
-  write("public/index.html", HTML);
+  write("public/index.html", HTML, test);
 }
