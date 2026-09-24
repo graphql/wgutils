@@ -1,4 +1,4 @@
-import { Config, SpecConfig } from "../../configSchema.js";
+import { SpecConfig } from "../../configSchema.js";
 import { revList, parseCoAuthorLines } from "../../git.js";
 import {
   loginFromNoreply,

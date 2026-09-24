@@ -4,7 +4,6 @@ import { promisify } from "node:util";
 // @ts-ignore
 import parseDiffRaw from "parse-diff/parse.js";
 
-import { Config } from "../interfaces.js";
 import { WgConfig } from "../configSchema.js";
 
 const parseDiff = parseDiffRaw as typeof import("parse-diff");
