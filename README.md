@@ -29,8 +29,10 @@ Main options:
 - `repoUrl` - the root URL to the repo, e.g. `"https://github.com/graphql/graphql-wg"`
 - `meetings` (_optional_) - set to `false` for repositories that do not manage meetings, such as spec-only repositories
 - `spec` (_optional_) - required for spec publishing/versioning commands:
+  - `title` - the name of the specification, excluding the word "Specification".
+    E.g. "GraphQL" or "GraphQL over HTTP"
   - `url` - the root URL to the specification; appending `/draft/` should view the draft version
-  - `sentenceName` - how the spec should be presented mid-sentence, e.g. `"the GraphQL specification"`
+  - `mainFile` - the file that gets fed into `spec-md`, e.g. `spec/GraphQL.md`
 
 Meeting options, required unless `meetings: false` is set:
 
@@ -82,8 +84,9 @@ const config = {
   repoUrl: "https://github.com/graphql/graphql-spec",
   meetings: false,
   spec: {
+    title: "GraphQL",
     url: "https://spec.graphql.org",
-    sentenceName: "the GraphQL specification",
+    mainFile: "spec/GraphQL.md",
   },
 };
 
@@ -101,33 +104,43 @@ Example: generate the agenda file(s) for April 2024:
 wgutils agenda gen 2024 4
 ```
 
+## wgutils spec build
+
+Build the spec into the `public/` folder.
+
 ## wgutils spec version
 
 Generates a changelog for a new specification version in `changelogs/<tag>.md`.
-This command requires `spec.url` and `spec.sentenceName` in `wg.config.js` (use
-with `meetings: false` for spec-only repos).
+This command requires `spec.title`, `spec.url` and `spec.mainFile` in
+`wg.config.js` (use with `meetings: false` for spec-only repos).
 
-Example: generate the `September2026` spec changelog, comparing against the
-previous `September2025` tag:
-
-```sh
-wgutils spec version --previous September2025 September2026
-```
-
-For the initial release of a specification, use `--no-previous` so the changelog
-is generated from the first commit in the repository:
+Example: generate the `September2026` spec changelog:
 
 ```sh
-wgutils spec version --no-previous September2026
+wgutils spec version September2026
 ```
 
-Use `--current` to compare against a commit other than `HEAD`. Use `--force` to
-allow an unexpected tag name (e.g. out of date) and/or overwrite an existing changelog. Use `--debug`
-for verbose logging.
+Use `--current` to compare against a commit other than `HEAD`. Use `--previous
+MonthYYYY` (or `--no-previous`) to override the autodetected previous tag. Use
+`--force` to allow an unexpected tag name (e.g. out of date) and/or overwrite an
+existing changelog. Use `--debug` for verbose logging. These together are useful
+for validating the script output from previous version runs.
 
 ```sh
 wgutils spec version --previous October2021 --current f29fbcd2ab5af763fce7ad62896eb62465a669b3 September2025 --force --debug
 ```
+
+## wgutils spec release
+
+Release the result of a previous `wgutils spec version` command by:
+
+1. Checking the spec title is correct.
+1. Fixing references in the changelog.
+1. Creating an annotated git tag for the current release.
+1. Changing the spec title back to "Current Working Draft".
+
+The tag must match the previous `wgutils spec version` run and this command must
+run on `main` after the draft release has been merged.
 
 ## wgutils can-automerge
 

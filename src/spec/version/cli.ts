@@ -16,7 +16,6 @@ export function options(yargs: Argv) {
     })
     .option("previous", {
       type: "string",
-      demandOption: true,
       description:
         "The tag of the previous release; use --no-previous for an initial release",
     })

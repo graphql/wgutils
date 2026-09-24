@@ -32,7 +32,7 @@ export async function versionSpec(
   config: Config,
   options: {
     tag: string;
-    previousTag: string | false;
+    previousTag: string | false | undefined;
     current?: string;
     force?: boolean;
     debug?: boolean;
@@ -43,7 +43,22 @@ export async function versionSpec(
     throw new Error(`This configuration is not setup for spec publishing`);
   }
   const { tag, previousTag: rawPT, force, current, debug } = options;
-  const previousTag = rawPT && rawPT !== "-" ? rawPT : null;
+  const previousTag = (() => {
+    if (rawPT === false || rawPT === "-") {
+      // No previous tag
+      return null;
+    } else if (rawPT === undefined) {
+      // Guess the previous tag
+      const tags = execGit(["tag", "-l", "--sort=-*committerdate"])
+        .split(/\s+/)
+        .filter((t) => t !== "" && t != tag);
+      return tags[0] ?? null;
+    } else if (typeof rawPT === "string") {
+      return rawPT;
+    } else {
+      throw new Error(`Did not understand ${rawPT}`);
+    }
+  })();
   if (!/^[a-zA-Z0-9]+$/.test(tag)) {
     console.error(`Unsupported tag: ${tag}`);
     process.exit(1);
@@ -130,11 +145,11 @@ ${
   previousTag == null
     ? `\
 This describes the set of changes incorporated into the initial version of
-${config.spec.sentenceName}. It's intended to ease the review of the specification for
+the ${config.spec.title} specification. It's intended to ease the review of the specification for
 `
     : `\
 This describes the set of changes since the last edition of
-${config.spec.sentenceName}, [${previousTag}](${specUrl}/${previousTag}/)${
+the ${config.spec.title} specification, [${previousTag}](${specUrl}/${previousTag}/)${
         hasPreviousChangelog
           ? ` (see [prior
 changelog](./${previousTag}.md))`
@@ -152,10 +167,10 @@ full detail and context.
 
 ## Contributors
 
-Anyone is welcome to join working group meetings and contribute to ${config.spec.sentenceName}. See
+Anyone is welcome to join working group meetings and contribute to the ${config.spec.title} specification. See
 [Contributing.md](${repoUrl}/blob/main/CONTRIBUTING.md)
 for more information. Thank you to these community members for their technical
-contribution to this edition of ${config.spec.sentenceName}.
+contribution to this edition of the ${config.spec.title} specification.
 
 ${contributorList}
 
