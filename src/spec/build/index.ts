@@ -113,8 +113,7 @@ export async function buildSpec(
       <td><a href="./draft" keep-hash>Working Draft</a></td>
       <td>${GITDATE}</td>
       <td></td>
-    </tr>
-  `;
+    </tr>`;
 
   const GITHUB_RELEASES = `${repoUrl}/releases/tag`;
   const tags = execGit(["tag", "-l", "--sort=-*committerdate"])
