@@ -64,7 +64,8 @@ export async function releaseSpec(
     execGit(["add", changelogsFile]);
     execGit(["commit", "-m", "Update reference to match tag"]);
   }
-  execGit(["tag", tag, "-m", newEdition]);
+  // `-m` implies `-a` but this makes it explicit
+  execGit(["tag", tag, "-am", newEdition]);
 
   const updatedMainFileText = mainFileText.replace(
     newEdition,
