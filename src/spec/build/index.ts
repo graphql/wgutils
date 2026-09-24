@@ -75,7 +75,9 @@ export async function buildSpec(
   if (existsSync("published")) {
     for (const dir of readdirSync("published", { withFileTypes: true })) {
       if (!dir.name.startsWith(".") && dir.isDirectory()) {
-        $("cp", ["-a", `published/${dir.name}`, `public/${dir.name}`]);
+        if (!test) {
+          $("cp", ["-a", `published/${dir.name}`, `public/${dir.name}`]);
+        }
       }
     }
   }
