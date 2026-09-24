@@ -80,6 +80,13 @@ export async function versionSpec(
     process.exit(1);
   }
 
+  const currentBranchName = execGit(["symbolic-ref", "--short", "HEAD"]);
+  if (currentBranchName === "main") {
+    throw new Error(
+      `Version command must not run on 'main' branch; 'git checkout -b prepare-${tag}'`,
+    );
+  }
+
   const changelogsDir = `${process.cwd()}/changelogs`;
   const specDir = `${process.cwd()}/spec`;
   await mkdir(changelogsDir, { recursive: true });

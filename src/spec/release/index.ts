@@ -27,6 +27,11 @@ export async function releaseSpec(
     throw new Error(`git tag '${tag}' already exists!`);
   }
 
+  const currentBranchName = execGit(["symbolic-ref", "--short", "HEAD"]);
+  if (currentBranchName !== "main") {
+    throw new Error(`Release command must run on 'main' branch`);
+  }
+
   const newEdition = `${
     // This should cover us until 2999... it's probably someone else's problem by then
     tag.replace(/2/, " 2")
