@@ -32,7 +32,7 @@ export async function versionSpec(
   config: Config,
   options: {
     tag: string;
-    previousTag: string | false;
+    previousTag: string | false | undefined;
     current?: string;
     force?: boolean;
     debug?: boolean;
@@ -43,7 +43,22 @@ export async function versionSpec(
     throw new Error(`This configuration is not setup for spec publishing`);
   }
   const { tag, previousTag: rawPT, force, current, debug } = options;
-  const previousTag = rawPT && rawPT !== "-" ? rawPT : null;
+  const previousTag = (() => {
+    if (rawPT === false || rawPT === "-") {
+      // No previous tag
+      return null;
+    } else if (rawPT === undefined) {
+      // Guess the previous tag
+      const tags = execGit(["tag", "-l", "--sort=-*committerdate"])
+        .split(/\s+/)
+        .filter((t) => t !== "" && t != tag);
+      return tags[0] ?? null;
+    } else if (typeof rawPT === "string") {
+      return rawPT;
+    } else {
+      throw new Error(`Did not understand ${rawPT}`);
+    }
+  })();
   if (!/^[a-zA-Z0-9]+$/.test(tag)) {
     console.error(`Unsupported tag: ${tag}`);
     process.exit(1);

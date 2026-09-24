@@ -110,23 +110,17 @@ Generates a changelog for a new specification version in `changelogs/<tag>.md`.
 This command requires `spec.title`, `spec.url` and `spec.mainFile` in
 `wg.config.js` (use with `meetings: false` for spec-only repos).
 
-Example: generate the `September2026` spec changelog, comparing against the
-previous `September2025` tag:
+Example: generate the `September2026` spec changelog:
 
 ```sh
-wgutils spec version --previous September2025 September2026
+wgutils spec version September2026
 ```
 
-For the initial release of a specification, use `--no-previous` so the changelog
-is generated from the first commit in the repository:
-
-```sh
-wgutils spec version --no-previous September2026
-```
-
-Use `--current` to compare against a commit other than `HEAD`. Use `--force` to
-allow an unexpected tag name (e.g. out of date) and/or overwrite an existing changelog. Use `--debug`
-for verbose logging.
+Use `--current` to compare against a commit other than `HEAD`. Use `--previous
+MonthYYYY` (or `--no-previous`) to override the autodetected previous tag. Use
+`--force` to allow an unexpected tag name (e.g. out of date) and/or overwrite an
+existing changelog. Use `--debug` for verbose logging. These together are useful
+for validating the script output from previous version runs.
 
 ```sh
 wgutils spec version --previous October2021 --current f29fbcd2ab5af763fce7ad62896eb62465a669b3 September2025 --force --debug
