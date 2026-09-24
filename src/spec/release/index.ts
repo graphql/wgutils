@@ -9,7 +9,7 @@ import { Config } from "../../interfaces.js";
 import { exists } from "../../utils.js";
 import { validateSpecRepo } from "../validateRepo.js";
 import { execGit } from "../../git.js";
-import { buildSpecRelease } from "../build/index.js";
+import { buildSpec, buildSpecRelease } from "../build/index.js";
 
 export async function releaseSpec(
   inConfig: Config,
@@ -77,6 +77,8 @@ export async function releaseSpec(
   await writeFile(config.spec.mainFile, updatedMainFileText);
   execGit(["add", config.spec.mainFile]);
   execGit(["commit", "-m", "Next working draft"]);
+
+  await buildSpec(config, { test: false });
 
   console.log(`Tag ${tag} created; to release: 'git push --follow-tags'`);
 }

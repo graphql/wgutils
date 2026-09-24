@@ -92,10 +92,10 @@ const noMeetingsWgConfigSchema = z.intersection(
 
 export type NoMeetingsWgConfig = z.infer<typeof noMeetingsWgConfigSchema>;
 
-export type SpecConfig = z.infer<typeof baseSpec> & {
-  spec: z.infer<typeof specConfigSchema>;
-};
-
 export const configSchema = z.union([wgConfigSchema, noMeetingsWgConfigSchema]);
 
 export type Config = z.infer<typeof configSchema>;
+
+export type SpecConfig = Config & {
+  spec: z.infer<typeof specConfigSchema>;
+};
