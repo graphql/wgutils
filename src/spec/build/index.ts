@@ -9,44 +9,51 @@ export async function buildSpec(
     test?: boolean;
   },
 ) {
+  const { test } = options;
   await validateSpecRepo(config);
   if (!config.spec) {
     throw new Error(`This configuration is not setup for spec publishing`);
   }
+  const {
+    repoUrl,
+    spec: { mainFile },
+  } = config;
 
-  console.log(`Build the spec${options.test ? " (test)" : ""}`);
   // This script publishes the GraphQL specification document to the web.
 
   // Determine if this is a tagged release
   const GITTAG = execGit(["tag", "--points-at", "HEAD"]).trim();
 
-  function specMd(
-    options: {
-      ref: string;
-    },
-    ...positionals: string[]
-  ) {
+  function specMd(ref: string) {
     return $("node_modules/.bin/spec-md", [
       "--metadata",
       "spec/metadata.json",
       "--githubSource",
-      `${config.repoUrl}/blame/${options.ref}/`,
-      ...positionals,
+      `${repoUrl}/blame/${ref}/`,
+      mainFile,
     ]);
+  }
+
+  function write(file: string, contents: string) {
+    const buffer = Buffer.from(contents, "utf8");
+    console.log(
+      `${file}: ${buffer.length} bytes${test ? " (test)" : " (written)"}`,
+    );
+    if (!test) writeFileSync(file, contents);
   }
 
   // Build the specification draft document
   console.log("Building spec draft");
-  mkdirSync("public/draft", { recursive: true });
-  const output = specMd({ ref: "main" }, config.spec.mainFile);
-  writeFileSync("public/draft/index.html", output);
+  if (!test) mkdirSync("public/draft", { recursive: true });
+  const output = specMd("main");
+  write("public/draft/index.html", output);
 
   // If this is a tagged commit, also build the release document
   if (GITTAG) {
     console.log(`Building spec release ${GITTAG}`);
-    mkdirSync(`public/${GITTAG}`, { recursive: true });
-    const output = specMd({ ref: GITTAG }, `spec/GraphQL.md`);
-    writeFileSync(`public/$GITTAG/index.html`, output);
+    if (!test) mkdirSync(`public/${GITTAG}`, { recursive: true });
+    const output = specMd(GITTAG);
+    write(`public/${GITTAG}/index.html`, output);
   }
 
   // Create the index file
@@ -59,7 +66,7 @@ export async function buildSpec(
     "--format=%cd",
     "--date=format:%a, %b %-d, %Y",
     "HEAD",
-  ]);
+  ]).trim();
 
   let HTML = `<html>
   <head>
@@ -106,10 +113,10 @@ export async function buildSpec(
     </tr>
   `;
 
-  const GITHUB_RELEASES = `${config.repoUrl}/releases/tag`;
+  const GITHUB_RELEASES = `${repoUrl}/releases/tag`;
   const tags = execGit(["tag", "-l", "--sort=-*committerdate"])
-    .trim()
-    .split(/\s+/);
+    .split(/\s+/)
+    .filter((t) => t !== "");
   let HAS_LATEST_RELEASE = false;
   for (const GITTAG of tags) {
     const VERSIONYEAR = GITTAG.slice(-4);
@@ -156,5 +163,5 @@ export async function buildSpec(
   </body>
 </html>`;
 
-  writeFileSync("public/index.html", HTML);
+  write("public/index.html", HTML);
 }
