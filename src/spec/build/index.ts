@@ -16,13 +16,16 @@ export async function buildSpec(
   }
   const {
     repoUrl,
-    spec: { mainFile },
+    spec: { title, mainFile },
   } = config;
 
   // This script publishes the GraphQL specification document to the web.
 
   // Determine if this is a tagged release
   const GITTAG = execGit(["tag", "--points-at", "HEAD"]).trim();
+  if (/\s/.test(GITTAG)) {
+    throw new Error(`Matched multiple tags! ${GITTAG}`);
+  }
 
   function specMd(ref: string) {
     return $("node_modules/.bin/spec-md", [
@@ -70,7 +73,7 @@ export async function buildSpec(
 
   let HTML = `<html>
   <head>
-    <title>GraphQL Specification Versions</title>
+    <title>${title} Specification Versions</title>
     <style>
       body {
         color: #333333;
@@ -103,7 +106,7 @@ export async function buildSpec(
     </style>
   </head>
   <body>
-    <h1>GraphQL</h1>
+    <h1>${title}</h1>
     <table>
     <tr>
       <td><em>Prerelease</em></td>

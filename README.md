@@ -29,8 +29,10 @@ Main options:
 - `repoUrl` - the root URL to the repo, e.g. `"https://github.com/graphql/graphql-wg"`
 - `meetings` (_optional_) - set to `false` for repositories that do not manage meetings, such as spec-only repositories
 - `spec` (_optional_) - required for spec publishing/versioning commands:
+  - `title` - the name of the specification, excluding the word "Specification".
+    E.g. "GraphQL" or "GraphQL over HTTP"
   - `url` - the root URL to the specification; appending `/draft/` should view the draft version
-  - `sentenceName` - how the spec should be presented mid-sentence, e.g. `"the GraphQL specification"`
+  - `mainFile` - the file that gets fed into `spec-md`, e.g. `spec/GraphQL.md`
 
 Meeting options, required unless `meetings: false` is set:
 
@@ -82,8 +84,9 @@ const config = {
   repoUrl: "https://github.com/graphql/graphql-spec",
   meetings: false,
   spec: {
+    title: "GraphQL",
     url: "https://spec.graphql.org",
-    sentenceName: "the GraphQL specification",
+    mainFile: "spec/GraphQL.md",
   },
 };
 
@@ -104,8 +107,8 @@ wgutils agenda gen 2024 4
 ## wgutils spec version
 
 Generates a changelog for a new specification version in `changelogs/<tag>.md`.
-This command requires `spec.url` and `spec.sentenceName` in `wg.config.js` (use
-with `meetings: false` for spec-only repos).
+This command requires `spec.title`, `spec.url` and `spec.mainFile` in
+`wg.config.js` (use with `meetings: false` for spec-only repos).
 
 Example: generate the `September2026` spec changelog, comparing against the
 previous `September2025` tag:
