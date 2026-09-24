@@ -1,22 +1,53 @@
-import { mkdirSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from "fs";
 import { execGit, $ } from "../../git";
 import { Config } from "../../interfaces.js";
 import { validateSpecRepo } from "../validateRepo";
+import { SpecConfig } from "../../configSchema";
+
+async function specMd(config: SpecConfig, ref: string) {
+  const {
+    repoUrl,
+    spec: { mainFile },
+  } = config;
+  return $("node_modules/.bin/spec-md", [
+    "--metadata",
+    "spec/metadata.json",
+    "--githubSource",
+    `${repoUrl}/blame/${ref}/`,
+    mainFile,
+  ]);
+}
+
+function write(file: string, contents: string, test = false) {
+  const buffer = Buffer.from(contents, "utf8");
+  console.log(
+    `${file}: ${buffer.length} bytes${test ? " (test)" : " (written)"}`,
+  );
+  if (!test) writeFileSync(file, contents);
+}
+
+export async function buildSpecRelease(
+  config: SpecConfig,
+  tag: string,
+  test = false,
+) {
+  console.log(`Building spec release ${tag}`);
+  if (!test) mkdirSync(`published/${tag}`, { recursive: true });
+  const output = await specMd(config, tag);
+  write(`published/${tag}/index.html`, output, test);
+}
 
 export async function buildSpec(
-  config: Config,
+  rawConfig: Config,
   options: {
     test?: boolean;
   },
 ) {
   const { test } = options;
-  await validateSpecRepo(config);
-  if (!config.spec) {
-    throw new Error(`This configuration is not setup for spec publishing`);
-  }
+  const config = await validateSpecRepo(rawConfig);
   const {
     repoUrl,
-    spec: { title, mainFile },
+    spec: { title },
   } = config;
 
   // This script publishes the GraphQL specification document to the web.
@@ -27,36 +58,24 @@ export async function buildSpec(
     throw new Error(`Matched multiple tags! ${GITTAG}`);
   }
 
-  function specMd(ref: string) {
-    return $("node_modules/.bin/spec-md", [
-      "--metadata",
-      "spec/metadata.json",
-      "--githubSource",
-      `${repoUrl}/blame/${ref}/`,
-      mainFile,
-    ]);
-  }
-
-  function write(file: string, contents: string) {
-    const buffer = Buffer.from(contents, "utf8");
-    console.log(
-      `${file}: ${buffer.length} bytes${test ? " (test)" : " (written)"}`,
-    );
-    if (!test) writeFileSync(file, contents);
-  }
-
   // Build the specification draft document
   console.log("Building spec draft");
   if (!test) mkdirSync("public/draft", { recursive: true });
-  const output = specMd("main");
+  const output = await specMd(config, "main");
   write("public/draft/index.html", output);
 
   // If this is a tagged commit, also build the release document
   if (GITTAG) {
-    console.log(`Building spec release ${GITTAG}`);
-    if (!test) mkdirSync(`public/${GITTAG}`, { recursive: true });
-    const output = specMd(GITTAG);
-    write(`public/${GITTAG}/index.html`, output);
+    await buildSpecRelease(config, GITTAG, test);
+  }
+
+  // Copy all published versions into `public`
+  if (existsSync("published")) {
+    for (const dir of readdirSync("published", { withFileTypes: true })) {
+      if (!dir.name.startsWith(".") && dir.isDirectory()) {
+        $("cp", ["-a", `published/${dir.name}`, `public/${dir.name}`]);
+      }
+    }
   }
 
   // Create the index file
