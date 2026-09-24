@@ -104,6 +104,10 @@ Example: generate the agenda file(s) for April 2024:
 wgutils agenda gen 2024 4
 ```
 
+## wgutils spec build
+
+Build the spec into the `public/` folder.
+
 ## wgutils spec version
 
 Generates a changelog for a new specification version in `changelogs/<tag>.md`.
@@ -125,6 +129,18 @@ for validating the script output from previous version runs.
 ```sh
 wgutils spec version --previous October2021 --current f29fbcd2ab5af763fce7ad62896eb62465a669b3 September2025 --force --debug
 ```
+
+## wgutils spec release
+
+Release the result of a previous `wgutils spec version` command by:
+
+1. Checking the spec title is correct.
+1. Fixing references in the changelog.
+1. Creating an annotated git tag for the current release.
+1. Changing the spec title back to "Current Working Draft".
+
+The tag must match the previous `wgutils spec version` run and this command must
+run on `main` after the draft release has been merged.
 
 ## wgutils can-automerge
 
