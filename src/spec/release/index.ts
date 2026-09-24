@@ -9,17 +9,15 @@ import { Config } from "../../interfaces.js";
 import { exists } from "../../utils.js";
 import { validateSpecRepo } from "../validateRepo.js";
 import { execGit } from "../../git.js";
+import { buildSpec, buildSpecRelease } from "../build/index.js";
 
 export async function releaseSpec(
-  config: Config,
+  inConfig: Config,
   options: {
     tag: string;
   },
 ) {
-  await validateSpecRepo(config);
-  if (!config.spec) {
-    throw new Error(`This configuration is not setup for spec publishing`);
-  }
+  const config = await validateSpecRepo(inConfig);
   const { tag } = options;
 
   const tags = execGit(["tag", "-l"])
@@ -27,6 +25,11 @@ export async function releaseSpec(
     .map((t) => t.trim());
   if (tags.includes(tag)) {
     throw new Error(`git tag '${tag}' already exists!`);
+  }
+
+  const currentBranchName = execGit(["symbolic-ref", "--short", "HEAD"]);
+  if (currentBranchName !== "main") {
+    throw new Error(`Release command must run on 'main' branch`);
   }
 
   const newEdition = `${
@@ -64,6 +67,11 @@ export async function releaseSpec(
     execGit(["add", changelogsFile]);
     execGit(["commit", "-m", "Update reference to match tag"]);
   }
+
+  const filename = await buildSpecRelease(config, tag);
+  execGit(["add", filename]);
+  execGit(["commit", "-m", `Build HTML for ${tag}`]);
+
   // `-m` implies `-a` but this makes it explicit
   execGit(["tag", tag, "-am", newEdition]);
 
@@ -74,6 +82,8 @@ export async function releaseSpec(
   await writeFile(config.spec.mainFile, updatedMainFileText);
   execGit(["add", config.spec.mainFile]);
   execGit(["commit", "-m", "Next working draft"]);
+
+  await buildSpec(config, { test: false });
 
   console.log(`Tag ${tag} created; to release: 'git push --follow-tags'`);
 }

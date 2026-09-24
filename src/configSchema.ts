@@ -95,3 +95,7 @@ export type NoMeetingsWgConfig = z.infer<typeof noMeetingsWgConfigSchema>;
 export const configSchema = z.union([wgConfigSchema, noMeetingsWgConfigSchema]);
 
 export type Config = z.infer<typeof configSchema>;
+
+export type SpecConfig = Config & {
+  spec: z.infer<typeof specConfigSchema>;
+};

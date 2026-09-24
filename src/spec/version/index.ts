@@ -29,7 +29,7 @@ const MONTHS = [
 ];
 
 export async function versionSpec(
-  config: Config,
+  inConfig: Config,
   options: {
     tag: string;
     previousTag: string | false | undefined;
@@ -38,10 +38,7 @@ export async function versionSpec(
     debug?: boolean;
   },
 ) {
-  await validateSpecRepo(config);
-  if (!config.spec) {
-    throw new Error(`This configuration is not setup for spec publishing`);
-  }
+  const config = await validateSpecRepo(inConfig);
   const { tag, previousTag: rawPT, force, current, debug } = options;
   const previousTag = (() => {
     if (rawPT === false || rawPT === "-") {
@@ -81,6 +78,13 @@ export async function versionSpec(
       `Expected tag ('${tag}') to be in '${expectedTags.join("', '")}' (use --force to force)`,
     );
     process.exit(1);
+  }
+
+  const currentBranchName = execGit(["symbolic-ref", "--short", "HEAD"]);
+  if (currentBranchName === "main") {
+    throw new Error(
+      `Version command must not run on 'main' branch; 'git checkout -b prepare-${tag}'`,
+    );
   }
 
   const changelogsDir = `${process.cwd()}/changelogs`;
@@ -212,7 +216,10 @@ yarn wgutils spec version ${previousTag == null ? `--no-previous` : `--previous 
 
   await writeFile(changelogsFile, formatted);
 
+  execGit(["add", config.spec.mainFile, changelogsFile]);
+  execGit(["commit", "-m", `Prepare for ${tag} release`]);
+
   console.log(
-    `${changelogsFile} written; commit, add editors notes and similar, and then `,
+    `${changelogsFile} written, spec title updated, and all committed.\n\nNext: add editors notes and similar, review in full, commit, then raise a PR and send to the TSC for approval.`,
   );
 }

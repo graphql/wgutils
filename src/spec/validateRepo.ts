@@ -1,9 +1,9 @@
 import { exists } from "../utils.js";
-import { Config } from "../configSchema.js";
+import { Config, SpecConfig } from "../configSchema.js";
 import { stat } from "node:fs/promises";
 
 // Validates a repo that contains a spec
-export async function validateSpecRepo(config: Config) {
+export async function validateSpecRepo(config: Config): Promise<SpecConfig> {
   const errors: string[] = [];
   if (!config.spec) {
     errors.push(
@@ -26,4 +26,5 @@ export async function validateSpecRepo(config: Config) {
       `This repository is not setup to publish a spec:\n\n- ${errors.join("\n- ")}`,
     );
   }
+  return config as SpecConfig;
 }
