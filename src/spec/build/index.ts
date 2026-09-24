@@ -77,7 +77,12 @@ export async function buildSpec(
     <style>
       body {
         color: #333333;
-        font: 13pt/18pt Cambria, 'Palatino Linotype', Palatino, 'Liberation Serif', serif;
+        font:
+          13pt/18pt Cambria,
+          "Palatino Linotype",
+          Palatino,
+          "Liberation Serif",
+          serif;
         margin: 6rem auto 3rem;
         max-width: 780px;
       }
@@ -87,7 +92,7 @@ export async function buildSpec(
         }
       }
       a {
-        color: #3B5998;
+        color: #3b5998;
         text-decoration: none;
       }
       a:hover {
@@ -108,12 +113,12 @@ export async function buildSpec(
   <body>
     <h1>${title}</h1>
     <table>
-    <tr>
-      <td><em>Prerelease</em></td>
-      <td><a href="./draft" keep-hash>Working Draft</a></td>
-      <td>${GITDATE}</td>
-      <td></td>
-    </tr>`;
+      <tr>
+        <td><em>Prerelease</em></td>
+        <td><a href="./draft" keep-hash>Working Draft</a></td>
+        <td>${GITDATE}</td>
+        <td></td>
+      </tr>`;
 
   const GITHUB_RELEASES = `${repoUrl}/releases/tag`;
   const tags = execGit(["tag", "-l", "--sort=-*committerdate"])
@@ -133,37 +138,43 @@ export async function buildSpec(
     ]).trim();
 
     HTML += `
-    <tr>`;
+      <tr>`;
 
     if (!HAS_LATEST_RELEASE) {
       HTML += `
-      <td><em>Latest Release</em></td>`;
+        <td><em>Latest Release</em></td>`;
       HAS_LATEST_RELEASE = true;
     } else {
       HTML += `
-      <td></td>`;
+        <td></td>`;
     }
 
     HTML += `
-      <td><a href="./${GITTAG}" keep-hash>${TAGTITLE}</a></td>
-      <td>${GITDATE}</td>
-      <td><a href="${GITHUB_RELEASES}/${GITTAG}">Release Notes</a></td>
-    </tr>`;
+        <td><a href="./${GITTAG}" keep-hash>${TAGTITLE}</a></td>
+        <td>${GITDATE}</td>
+        <td>
+          <a
+            href="${GITHUB_RELEASES}/${GITTAG}"
+            >Release Notes</a
+          >
+        </td>
+      </tr>`;
   }
 
   HTML += `
     </table>
     <script>
-      var links = document.getElementsByTagName('a');
+      var links = document.getElementsByTagName("a");
       for (var i = 0; i < links.length; i++) {
-        if (links[i].hasAttribute('keep-hash')) {
+        if (links[i].hasAttribute("keep-hash")) {
           links[i].href += location.hash;
-          links[i].removeAttribute('keep-hash');
+          links[i].removeAttribute("keep-hash");
         }
       }
     </script>
   </body>
-</html>`;
+</html>
+`;
 
   write("public/index.html", HTML);
 }
