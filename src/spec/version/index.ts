@@ -188,7 +188,7 @@ ${contributorList}
 - [GitHub: all Editorial PRs merged ${since}](${repoUrl}/pulls?page=1&q=is%3Apr+is%3Amerged+base%3Amain+merged%3A${previousTagDate}..${headDate}+label%3A%22%E2%9C%8F%EF%B8%8F+Editorial%22)
 - [GitHub: all changes ${since}](${repoUrl}/compare/${previousGitRef}...${HEAD})
 
-${await gitLog(previousGitRef, HEAD, specDir)}
+${await gitLog(config.repoUrl, previousGitRef, HEAD, specDir)}
 
 ${
   previousTag == null
