@@ -17,7 +17,7 @@ const markdown = remark().use(remarkGfm);
 
 export interface Attendee {
   name: string;
-  github: string;
+  github: string | null;
   org: string;
   location: string;
 }
@@ -184,11 +184,22 @@ export function getAttendees(ast: Root): Attendee[] {
       ] ?? "";
     return {
       name: value(["name"]),
-      github: value(["github", "githubhandle"]).replace(/^@/, ""),
+      github: normaliseGitHubUsername(value(["github", "githubhandle"])),
       org: value(["organization", "organisation", "org"]),
       location: value(["location"]),
     };
   });
+}
+
+function normaliseGitHubUsername(value: string): string | null {
+  const withoutPrefix = value.replace(/^https:\/\/github\.com\//i, "");
+  const withoutAt = withoutPrefix.replace(/^@/, "");
+  const firstInvalidCharacter = withoutAt.search(/[^a-z0-9-]/i);
+  const username =
+    firstInvalidCharacter === -1
+      ? withoutAt
+      : withoutAt.slice(0, firstInvalidCharacter);
+  return username.replace(/[^a-z0-9]+$/i, "") || null;
 }
 
 function getTopics(ast: Root): Topic[] {
@@ -342,18 +353,20 @@ export function formatAgendaDetails(details: AgendaDetails): string {
 }
 
 function formatTopics(topics: Topic[], indent: string): string[] {
-  return topics.filter((topic) => !topic.process).flatMap((topic) => [
-    `${indent}- ${topic.process ? "[process] " : ""}${indentMultiline(topic.title, `${indent}  `)}${
-      topic.duration
-        ? ` (${indentMultiline(topic.duration, `${indent}  `)}${
-            topic.owner
-              ? `, ${indentMultiline(topic.owner, `${indent}  `)}`
-              : ""
-          })`
-        : ""
-    }`,
-    ...formatSubitems(topic.subitems ?? [], `${indent}  `),
-  ]);
+  return topics
+    .filter((topic) => !topic.process)
+    .flatMap((topic) => [
+      `${indent}- ${topic.process ? "[process] " : ""}${indentMultiline(topic.title, `${indent}  `)}${
+        topic.duration
+          ? ` (${indentMultiline(topic.duration, `${indent}  `)}${
+              topic.owner
+                ? `, ${indentMultiline(topic.owner, `${indent}  `)}`
+                : ""
+            })`
+          : ""
+      }`,
+      ...formatSubitems(topic.subitems ?? [], `${indent}  `),
+    ]);
 }
 
 function formatSubitems(subitems: Subitem[], indent: string): string[] {
