@@ -3,10 +3,10 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-import * as agendasCmd from "./agendas/cli.js";
-import * as initCmd from "./init/cli.js";
-import * as canAutomergeCmd from "./canAutomerge/cli.js";
-import * as specCmd from "./spec/cli.js";
+import * as agendasCmd from "./agendas/cli.ts";
+import * as initCmd from "./init/cli.ts";
+import * as canAutomergeCmd from "./canAutomerge/cli.ts";
+import * as specCmd from "./spec/cli.ts";
 
 yargs(hideBin(process.argv))
   .strict()

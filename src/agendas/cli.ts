@@ -1,6 +1,7 @@
 import type { Argv } from "yargs";
-import * as genCmd from "./gen/cli.js";
-import type { ArgsFromOptions } from "../interfaces.js";
+import * as genCmd from "./gen/cli.ts";
+import * as detailsCmd from "./details/cli.ts";
+import type { ArgsFromOptions } from "../interfaces.ts";
 
 export function options(yargs: Argv) {
   return yargs
@@ -9,6 +10,12 @@ export function options(yargs: Argv) {
       "Generate agenda for particular month",
       genCmd.options,
       genCmd.run,
+    )
+    .command(
+      "details [year] [month] [day]",
+      "Show details from agenda files",
+      detailsCmd.options,
+      detailsCmd.run,
     )
     .demandCommand();
 }

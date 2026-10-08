@@ -1,8 +1,8 @@
 import { writeFile, stat } from "node:fs/promises";
 import type { Argv } from "yargs";
-import type { ArgsFromOptions } from "../interfaces.js";
+import type { ArgsFromOptions } from "../interfaces.ts";
 
-import { getConfigPath, loadConfig, template } from "../config.js";
+import { getConfigPath, loadConfig, template } from "../config.ts";
 
 export function options(yargs: Argv) {
   return yargs.example("$0", "Initialize wgutils");

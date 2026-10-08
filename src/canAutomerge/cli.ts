@@ -1,8 +1,8 @@
 import type { Argv } from "yargs";
-import type { ArgsFromOptions } from "../interfaces.js";
+import type { ArgsFromOptions } from "../interfaces.ts";
 
-import { checkPr } from "./index.js";
-import { loadConfig } from "../config.js";
+import { checkPr } from "./index.ts";
+import { loadConfig } from "../config.ts";
 
 export function options(yargs: Argv) {
   return yargs

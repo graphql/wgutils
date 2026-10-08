@@ -5,11 +5,11 @@
  */
 
 import { writeFile, readFile } from "node:fs/promises";
-import { Config } from "../../interfaces.js";
-import { exists } from "../../utils.js";
-import { validateSpecRepo } from "../validateRepo.js";
-import { execGit } from "../../git.js";
-import { buildSpec, buildSpecRelease } from "../build/index.js";
+import type { Config } from "../../interfaces.ts";
+import { exists } from "../../utils.ts";
+import { validateSpecRepo } from "../validateRepo.ts";
+import { execGit } from "../../git.ts";
+import { buildSpec, buildSpecRelease } from "../build/index.ts";
 
 export async function releaseSpec(
   inConfig: Config,

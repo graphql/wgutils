@@ -5,13 +5,13 @@
  */
 
 import { mkdir, writeFile, readFile } from "node:fs/promises";
-import { Config } from "../../interfaces.js";
-import { exists } from "../../utils.js";
+import type { Config } from "../../interfaces.ts";
+import { exists } from "../../utils.ts";
 import { format } from "prettier";
-import { validateSpecRepo } from "../validateRepo.js";
-import { gitLog } from "./gitLog.js";
-import { generateContributorList } from "../contributors/utils.js";
-import { execGit } from "../../git.js";
+import { validateSpecRepo } from "../validateRepo.ts";
+import { gitLog } from "./gitLog.ts";
+import { generateContributorList } from "../contributors/utils.ts";
+import { execGit } from "../../git.ts";
 
 const MONTHS = [
   "January",

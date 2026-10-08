@@ -1,8 +1,8 @@
 import type { Argv } from "yargs";
-import * as buildCmd from "./build/cli.js";
-import * as versionCmd from "./version/cli.js";
-import * as releaseCmd from "./release/cli.js";
-import type { ArgsFromOptions } from "../interfaces.js";
+import * as buildCmd from "./build/cli.ts";
+import * as versionCmd from "./version/cli.ts";
+import * as releaseCmd from "./release/cli.ts";
+import type { ArgsFromOptions } from "../interfaces.ts";
 
 export function options(yargs: Argv) {
   return yargs

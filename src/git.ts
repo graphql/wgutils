@@ -1,8 +1,6 @@
-import {
-  ExecFileOptionsWithStringEncoding,
-  execFileSync,
-} from "node:child_process";
-import { die } from "./utils.js";
+import { execFileSync } from "node:child_process";
+import type { ExecFileOptionsWithStringEncoding } from "node:child_process";
+import { die } from "./utils.ts";
 
 /** Do not use this in security sensitive places; it's just for presentation */
 function printArg(arg: string): string {
