@@ -1,14 +1,14 @@
-import { SpecConfig } from "../../configSchema.js";
-import { revList, parseCoAuthorLines } from "../../git.js";
+import type { SpecConfig } from "../../configSchema.ts";
+import { revList, parseCoAuthorLines } from "../../git.ts";
 import {
   loginFromNoreply,
   getToken,
   fetchCommitsByOidBatch,
   graphql,
   candidateHandlesFromEmailAndName,
-} from "../../github.js";
-import { normalizeName, pickBetterName } from "../../names.js";
-import { die, sleep, toLower, cmp, repoOwnerAndName } from "../../utils.js";
+} from "../../github.ts";
+import { normalizeName, pickBetterName } from "../../names.ts";
+import { die, sleep, toLower, cmp, repoOwnerAndName } from "../../utils.ts";
 
 function sanitizeDisplayName(raw: string, fallback: string) {
   const s = (raw || "").trim();

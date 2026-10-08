@@ -12,9 +12,9 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { toDate } from "date-fns-tz";
-import { Meeting } from "../../interfaces.js";
+import type { Meeting } from "../../interfaces.ts";
 import { inspect } from "node:util";
-import { AnnualItem, WgConfig } from "../../configSchema.js";
+import type { AnnualItem, WgConfig } from "../../configSchema.ts";
 
 const EMDASH = "—";
 

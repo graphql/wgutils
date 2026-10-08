@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from "fs";
-import { execGit, $ } from "../../git";
-import { Config } from "../../interfaces.js";
-import { validateSpecRepo } from "../validateRepo";
-import { SpecConfig } from "../../configSchema";
+import { execGit, $ } from "../../git.ts";
+import type { Config } from "../../interfaces.ts";
+import { validateSpecRepo } from "../validateRepo.ts";
+import type { SpecConfig } from "../../configSchema.ts";
 
 async function specMd(config: SpecConfig, ref: string) {
   const {

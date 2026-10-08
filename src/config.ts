@@ -1,4 +1,5 @@
-import { configSchema, Config } from "./configSchema";
+import { configSchema } from "./configSchema.ts";
+import type { Config } from "./configSchema.ts";
 
 export function getConfigPath() {
   return `${process.cwd()}/wg.config.js`;
@@ -9,9 +10,7 @@ export async function loadConfig(): Promise<Config> {
   const rawConfig = (await import(configPath)).default;
 
   const result = configSchema.safeParse(rawConfig);
-  if (result.success) {
-    return result.data;
-  } else {
+  if (result.success === false) {
     const formatted = result.error.format();
     console.error(
       `Your configuration did not pass validation; the following Zod errors were discovered:`,
@@ -19,6 +18,7 @@ export async function loadConfig(): Promise<Config> {
     console.error(formatted);
     process.exit(1);
   }
+  return result.data;
 }
 
 export const template = `\

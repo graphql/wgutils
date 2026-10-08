@@ -1,5 +1,5 @@
 import { relative } from "node:path";
-import { execGit } from "../../git";
+import { execGit } from "../../git.ts";
 
 const DIVIDER = "§FIELD_DIVIDE§";
 

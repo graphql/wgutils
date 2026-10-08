@@ -1,5 +1,5 @@
-import { exists } from "../utils.js";
-import { Config, SpecConfig } from "../configSchema.js";
+import { exists } from "../utils.ts";
+import type { Config, SpecConfig } from "../configSchema.ts";
 import { stat } from "node:fs/promises";
 
 // Validates a repo that contains a spec
