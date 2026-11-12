@@ -27,7 +27,7 @@ export async function releaseSpec(
     throw new Error(`git tag '${tag}' already exists!`);
   }
 
-  const currentBranchName = execGit(["symbolic-ref", "--short", "HEAD"]);
+  const currentBranchName = execGit(["symbolic-ref", "--short", "HEAD"]).trim();
   if (currentBranchName !== "main") {
     throw new Error(`Release command must run on 'main' branch`);
   }
