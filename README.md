@@ -127,6 +127,9 @@ pairs can serve as anchors for nearby context. A
 `<!-- wgutils:correlated-notes v1 -->` comment at the end makes repeat runs
 exit successfully without API calls.
 
+If a `BEGIN` has no matching `END`, the command warns and saves the notes.
+Extractors can treat the excerpt as extending to the end of the file.
+
 Library callers can import `correlateNotes` from `wgutils` and call
 `await correlateNotes(config, "2026-10-22")`. Input, lookup, API, and
 marker validation failures reject the promise and cause the CLI to exit

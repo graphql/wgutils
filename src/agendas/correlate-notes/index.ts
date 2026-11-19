@@ -210,7 +210,9 @@ function validateAnnotations(
     throw new Error(`Invalid correlation marker ${marker}`);
   }
   if (open.size)
-    throw new Error(`Missing END marker for ${[...open].join(", ")}`);
+    console.warn(
+      `Warning: Missing END marker for ${[...open].join(", ")}. The excerpt extends to EOF.`,
+    );
   return stripped + candidate.slice(previousEnd);
 }
 
