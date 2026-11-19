@@ -8,3 +8,8 @@ export async function getAgendaDetails(
   return details.getAgendaDetails(config, filter);
 }
 export type { Config } from "./configSchema.ts";
+export {
+  getAgendaDate,
+  getAgendaPathDay,
+  looksLikeItMightHaveBeenCancelled,
+} from "./agendas/metadata.ts";
