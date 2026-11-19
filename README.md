@@ -128,7 +128,9 @@ exit successfully without API calls.
 
 Library callers can import `correlateNotes` from `wgutils` and call
 `await correlateNotes(config, "2026-10-22")`. Input, lookup, API, and
-validation failures reject the promise and cause the CLI to exit non-zero.
+marker validation failures reject the promise and cause the CLI to exit
+non-zero. If Luna changes the original text, the command saves the result
+and warns on stderr with an excerpt showing the first difference.
 
 ## wgutils spec build
 
