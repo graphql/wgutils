@@ -116,14 +116,25 @@ titles, descriptions, authors, and labels alongside the agenda topic to identify
 relevant passages, even when the notes omit the reference number. Use only keys
 from the github object. Mark each passage that substantively relates to a
 reference, including individual action items and longer sections.
+
+For similarly named proposals, use the concrete subject of the passage to
+distinguish them. For example, an action item about adding unions to an
+empty-interface implementation belongs to the interfaces-and-unions proposal.
+If the notes are ambiguous and several references plausibly apply, tag the
+passage for each of them. Favor including a plausible match over leaving out a
+relevant mention. Apply both a specification PR and its implementation PR when
+the passage discusses both.
+
 Keep bullet markers and indentation intact by placing inline comments around
 the text of individual items. For multi-block excerpts, put comments on their
 own lines with blank lines as needed to retain the Markdown structure.
 A passage can relate to multiple references. Different references may overlap.
 Close each span before starting another span for that same reference.
-Before responding, check that removing your comments recovers all of the
-original text in the same order. If nothing matches, return the original
-notes verbatim. Do not add a completion marker.`;
+Before responding, scan the overview, action items, and detailed notes once
+more for missed mentions, including follow-ups that refer to the topic
+indirectly. Check that removing your comments recovers all of the original text
+in the same order. If nothing matches, return the original notes verbatim.
+Do not add a completion marker.`;
 
 async function annotateNotes(apiKey: string, model: string, input: object) {
   const response = await fetch("https://api.openai.com/v1/responses", {
