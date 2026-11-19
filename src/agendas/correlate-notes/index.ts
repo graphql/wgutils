@@ -132,8 +132,8 @@ A passage can relate to multiple references. Different references may overlap.
 Close each span before starting another span for that same reference.
 Before responding, scan the overview, action items, and detailed notes once
 more for missed mentions, including follow-ups that refer to the topic
-indirectly. Check that removing your comments recovers all of the original text
-in the same order. If nothing matches, return the original notes verbatim.
+indirectly. Removing your comments should recover the original text in the
+same order. If nothing matches, return the original notes verbatim.
 Do not add a completion marker.`;
 
 async function annotateNotes(apiKey: string, model: string, input: object) {
@@ -147,7 +147,7 @@ async function annotateNotes(apiKey: string, model: string, input: object) {
       model,
       instructions,
       input: JSON.stringify(input),
-      reasoning: { effort: "medium" },
+      reasoning: { effort: "high" },
       store: false,
       tools: [],
     }),
@@ -183,8 +183,7 @@ function validateAnnotations(
   candidate: string,
   references: Map<string, Reference>,
 ) {
-  const open = new Map<string, number>();
-  // Track offsets in the stripped text so markers alone do not count as content.
+  const open = new Set<string>();
   let stripped = "";
   let previousEnd = 0;
   for (const match of candidate.matchAll(
@@ -200,21 +199,15 @@ function validateAnnotations(
     previousEnd = match.index + marker.length;
     if (!references.has(key))
       throw new Error(`Unknown correlation reference ${key}`);
-    const start = open.get(key);
-    if (action === "BEGIN" && start === undefined) {
-      open.set(key, stripped.length);
-    } else if (
-      action === "END" &&
-      start !== undefined &&
-      stripped.slice(start).trim()
-    ) {
-      open.delete(key);
-    } else {
-      throw new Error(`Invalid correlation marker ${marker}`);
+    if (action === "BEGIN" && !open.has(key)) {
+      open.add(key);
+      continue;
     }
+    if (action === "END" && open.delete(key)) continue;
+    throw new Error(`Invalid correlation marker ${marker}`);
   }
   if (open.size)
-    throw new Error(`Missing END marker for ${[...open.keys()].join(", ")}`);
+    throw new Error(`Missing END marker for ${[...open].join(", ")}`);
   return stripped + candidate.slice(previousEnd);
 }
 

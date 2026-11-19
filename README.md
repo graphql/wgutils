@@ -117,12 +117,13 @@ Run the command from the working group's repository root. It reads
 `notes/YYYY/summary-YYYY-MM-DD.md` and the matching agenda, respecting the
 configured `repoSubpath`. GitHub lookups use `GITHUB_TOKEN`, `GH_TOKEN`, or
 `gh auth token`. Set `OPENAI_API_KEY` and `OPENAI_MODEL` to a model that
-supports the Responses API with medium reasoning effort. The request sends the
+supports the Responses API with high reasoning effort. The request sends the
 notes and agenda context to OpenAI with response storage disabled and no tools.
 
 The notes use paired comments such as `<!--BEGIN[graphql/graphql-spec#300]-->`
 and `<!--END[graphql/graphql-spec#300]-->`. Extractors should pair comments
-per reference because excerpts for different references can overlap. A
+per reference because excerpts for different references can overlap. Empty
+pairs can serve as anchors for nearby context. A
 `<!-- wgutils:correlated-notes v1 -->` comment at the end makes repeat runs
 exit successfully without API calls.
 
