@@ -133,6 +133,7 @@ async function annotateNotes(apiKey: string, model: string, input: object) {
       input: JSON.stringify(input),
       reasoning: { effort: "medium" },
       store: false,
+      tools: [],
     }),
   });
   if (!response.ok) {
