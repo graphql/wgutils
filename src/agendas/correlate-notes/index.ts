@@ -203,7 +203,10 @@ function validateAnnotations(
       open.add(key);
       continue;
     }
-    if (action === "END" && open.delete(key)) continue;
+    if (action === "END") {
+      open.delete(key);
+      continue;
+    }
     throw new Error(`Invalid correlation marker ${marker}`);
   }
   if (open.size)
