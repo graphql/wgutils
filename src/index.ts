@@ -1,4 +1,5 @@
 export { generateAgendas } from "./agendas/gen/index.ts";
+export { correlateNotes } from "./agendas/correlate-notes/index.ts";
 import type { WgConfig } from "./configSchema.ts";
 export async function getAgendaDetails(
   config: WgConfig,

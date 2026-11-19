@@ -104,6 +104,32 @@ Example: generate the agenda file(s) for April 2024:
 wgutils agenda gen 2024 4
 ```
 
+## wgutils agenda correlate-notes
+
+Annotate a downloaded Zoom summary with excerpts for the RFCs discussed at
+the meeting.
+
+```sh
+wgutils agenda correlate-notes 2026-10-22
+```
+
+Run the command from the working group's repository root. It reads
+`notes/YYYY/summary-YYYY-MM-DD.md` and the matching agenda, respecting the
+configured `repoSubpath`. GitHub lookups use `GITHUB_TOKEN`, `GH_TOKEN`, or
+`gh auth token`. Set `OPENAI_API_KEY` and `OPENAI_MODEL` to a model that
+supports the Responses API with medium reasoning effort. The request sends the
+notes and agenda context to OpenAI with response storage disabled and no tools.
+
+The notes use paired comments such as `<!--BEGIN[graphql/graphql-spec#300]-->`
+and `<!--END[graphql/graphql-spec#300]-->`. Extractors should pair comments
+per reference because excerpts for different references can overlap. A
+`<!-- wgutils:correlated-notes v1 -->` comment at the end makes repeat runs
+exit successfully without API calls.
+
+Library callers can import `correlateNotes` from `wgutils` and call
+`await correlateNotes(config, "2026-10-22")`. Input, lookup, API, and
+validation failures reject the promise and cause the CLI to exit non-zero.
+
 ## wgutils spec build
 
 Build the spec into the `public/` folder.
