@@ -62,14 +62,24 @@ interface GitHubItem {
   title: string;
   url: string;
   body: string;
+  author: { login: string } | null;
+  labels: { nodes: Array<{ name: string } | null> | null } | null;
 }
+
+const itemFields = `
+  title
+  url
+  body
+  author { login }
+  labels(first: 20) { nodes { name } }
+`;
 
 export async function fetchReference(ref: Reference, token: string) {
   async function lookup(field: "discussion" | "issueOrPullRequest") {
     const selection =
       field === "discussion"
-        ? "title url body"
-        : "... on Issue { title url body } ... on PullRequest { title url body }";
+        ? itemFields
+        : `... on Issue { ${itemFields} } ... on PullRequest { ${itemFields} }`;
     const { data, errors } = await graphql({
       token,
       query: `query($repo: String!, $number: Int!) {
@@ -102,5 +112,8 @@ export async function fetchReference(ref: Reference, token: string) {
     url: item.url,
     type: item.__typename,
     description: item.body.slice(0, 2_000),
+    author: item.author?.login ?? null,
+    labels:
+      item.labels?.nodes?.flatMap((label) => (label ? [label.name] : [])) ?? [],
   };
 }

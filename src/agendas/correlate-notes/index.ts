@@ -108,8 +108,11 @@ Return the entire notes Markdown as plain text, with its original wording,
 order, and Markdown structure. Do not enclose the response in a code fence.
 Add only paired comments, using exactly these forms:
 <!--BEGIN[graphql/repo#123]--> and <!--END[graphql/repo#123]-->.
-Use only keys from the github object. Mark each passage that substantively
-relates to a reference, including individual action items and longer sections.
+Match each agenda item's reference keys to the github object. Use the GitHub
+titles, descriptions, authors, and labels alongside the agenda topic to identify
+relevant passages, even when the notes omit the reference number. Use only keys
+from the github object. Mark each passage that substantively relates to a
+reference, including individual action items and longer sections.
 Keep bullet markers and indentation intact by placing inline comments around
 the text of individual items. For multi-block excerpts, put comments on their
 own lines with blank lines as needed to retain the Markdown structure.
