@@ -1,5 +1,5 @@
 import { readdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { remark } from "remark";
 import remarkGfm from "remark-gfm";
 import type {
@@ -12,6 +12,7 @@ import type {
   Heading,
 } from "mdast";
 import type { WgConfig } from "../../configSchema.ts";
+
 import {
   getAgendaDate,
   getAgendaPathDay,
@@ -70,10 +71,7 @@ export async function getAgendaDetails(
     // agenda sections, so recognise it before trying to extract those fields.
     if (looksLikeItMightHaveBeenCancelled(contents)) continue;
     const date = getAgendaDate(contents);
-    if (
-      !date ||
-      !matchesFilter(getAgendaPathDay(file, agendaDirectory, date), filter)
-    )
+    if (!date || !matchesFilter(getAgendaPathDay(relative(agendaDirectory, file)) ?? date, filter))
       continue;
     const meeting = extractMeeting(contents, date);
     // A past agenda with fewer than two attendees generally represents a
