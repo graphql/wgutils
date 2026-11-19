@@ -1,12 +1,5 @@
-import {
-  mkdtemp,
-  readFile,
-  rename,
-  rm,
-  stat,
-  writeFile,
-} from "node:fs/promises";
-import { basename, dirname, join } from "node:path";
+import { readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import type { WgConfig } from "../../configSchema.ts";
 import { getToken } from "../../github.ts";
 import { getAgendaSources, type Subitem } from "../details/index.ts";
@@ -85,21 +78,10 @@ export async function correlateNotes(
   });
   validateAnnotations(original, candidate, references);
 
-  const tempDir = await mkdtemp(join(dirname(path), ".wgutils-correlate-"));
-  try {
-    const tempPath = join(tempDir, basename(path));
-    const { mode } = await stat(path);
-    await writeFile(
-      tempPath,
-      `${candidate}${candidate.endsWith("\n") ? "\n" : "\n\n"}${completionMarker}\n`,
-      {
-        mode,
-      },
-    );
-    await rename(tempPath, path);
-  } finally {
-    await rm(tempDir, { recursive: true, force: true });
-  }
+  await writeFile(
+    path,
+    `${candidate}${candidate.endsWith("\n") ? "\n" : "\n\n"}${completionMarker}\n`,
+  );
 }
 
 async function fetchReferenceEntries(references: Map<string, Reference>) {
