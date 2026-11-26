@@ -6,6 +6,7 @@ import { hideBin } from "yargs/helpers";
 import * as agendasCmd from "./agendas/cli.ts";
 import * as initCmd from "./init/cli.ts";
 import * as canAutomergeCmd from "./canAutomerge/cli.ts";
+import * as labelsCmd from "./labels/cli.ts";
 import * as specCmd from "./spec/cli.ts";
 
 yargs(hideBin(process.argv))
@@ -35,6 +36,7 @@ yargs(hideBin(process.argv))
     canAutomergeCmd.options,
     canAutomergeCmd.run,
   )
+  .command("labels", "Manage GitHub repository labels", labelsCmd.options)
   .command(
     "spec",
     "Tools for working with a specification",
