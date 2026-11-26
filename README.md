@@ -117,7 +117,7 @@ Run the command from the working group's repository root. It reads
 `notes/YYYY/summary-YYYY-MM-DD.md` and the matching agenda, respecting the
 configured `repoSubpath`. GitHub lookups use `GITHUB_TOKEN`, `GH_TOKEN`, or
 `gh auth token`. Set `OPENAI_API_KEY` and `OPENAI_MODEL` to a model that
-supports the Responses API with high reasoning effort. The request sends the
+supports the Responses API with `xhigh` reasoning effort. The request sends the
 notes and agenda context to OpenAI with response storage disabled and no tools.
 
 The notes use paired comments such as `<!--BEGIN[graphql/graphql-spec#300]-->`
