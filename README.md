@@ -149,6 +149,19 @@ Library callers can import `correlateNotes` from `wgutils` and call
 final marker validation failures reject the promise and cause the CLI to exit
 non-zero without overwriting the notes.
 
+## wgutils labels sync
+
+From the target repository checkout, run the following with an authenticated
+GitHub CLI (`gh`) account that can create labels:
+
+```sh
+wgutils labels sync graphql
+```
+
+The `graphql` labelset includes the RFC stages and the Editorial, Process,
+Needs Champion, Next Stage?, and Ambiguity labels from `graphql/graphql-spec`.
+The command creates missing labels and preserves existing colors and descriptions.
+
 ## wgutils spec build
 
 Build the spec into the `public/` folder.

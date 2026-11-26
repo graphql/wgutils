@@ -1,0 +1,57 @@
+[
+  {
+    "color": "d9c9ff",
+    "description": "PR is non-normative or does not influence implementation",
+    "name": "✏️ Editorial"
+  },
+  {
+    "color": "b60205",
+    "description": "RFC Stage X (See graphql-spec/CONTRIBUTING.md) as it has been replaced by a newer proposal",
+    "name": "🌱 Superseded (RFC X)"
+  },
+  {
+    "color": "35df11",
+    "description": "RFC Stage 3 (See graphql-spec/CONTRIBUTING.md)",
+    "name": "🏁 Accepted (RFC 3)"
+  },
+  {
+    "color": "e8ea31",
+    "description": "Related to Governance, Tools, or other meta work",
+    "name": "🐝 Process"
+  },
+  {
+    "color": "5c6fa7",
+    "description": "RFC Needs a champion to progress (See graphql-spec/CONTRIBUTING.md)",
+    "name": "👻 Needs Champion"
+  },
+  {
+    "color": "fcc8c7",
+    "description": "RFC Stage 1 (See graphql-spec/CONTRIBUTING.md)",
+    "name": "💡 Proposal (RFC 1)"
+  },
+  {
+    "color": "eac248",
+    "description": "RFC Stage 0 (See graphql-spec/CONTRIBUTING.md)",
+    "name": "💭 Strawman (RFC 0)"
+  },
+  {
+    "color": "13dde4",
+    "description": "RFC Stage 2 (See graphql-spec/CONTRIBUTING.md)",
+    "name": "📄 Draft (RFC 2)"
+  },
+  {
+    "color": "ff4266",
+    "description": "RFC Stage X (See graphql-spec/CONTRIBUTING.md)",
+    "name": "🗑 Rejected (RFC X)"
+  },
+  {
+    "color": "b7ecf7",
+    "description": "This RFC believes it is ready for the next stage",
+    "name": "🚀 Next Stage?"
+  },
+  {
+    "color": "ccc2f9",
+    "description": "An issue/PR which identifies or fixes spec ambiguity",
+    "name": "🤷‍♀️ Ambiguity"
+  }
+]
