@@ -79,31 +79,36 @@ export async function correlateNotes(
     github,
     notes: original,
   };
-  let previousFailure: string | undefined;
-  let candidate: string;
-  let stripped: string;
-  while (true) {
-    try {
-      candidate = await annotateNotes(
-        apiKey,
-        model,
-        previousFailure === undefined ? input : { ...input, previousFailure },
-      );
-      stripped = validateAnnotations(candidate, references);
-      break;
-    } catch (error) {
-      if (!(error instanceof RejectedOutput) || previousFailure !== undefined)
-        throw error;
-      previousFailure = error.message;
-      console.warn(`Retrying notes correlation once: ${previousFailure}`);
+  const attempt = async (model: string, previousFailure?: string) => {
+    const candidate = await annotateNotes(
+      apiKey,
+      model,
+      previousFailure === undefined ? "xhigh" : "medium",
+      previousFailure === undefined ? input : { ...input, previousFailure },
+    );
+    const warnings = validateAnnotations(candidate, references, original);
+    if (warnings.length) {
+      const message = warnings.join("\n");
+      if (previousFailure === undefined) throw new RejectedOutput(message);
+      console.warn(`Warning: ${model} output for ${path}: ${message}`);
     }
+    return candidate;
+  };
+
+  let candidate: string;
+  try {
+    candidate = await attempt(model);
+  } catch (error) {
+    if (!(error instanceof RejectedOutput)) throw error;
+    const fallback = "gpt-6.2-sol";
+    console.warn(`Retrying ${path} with ${fallback}: ${error.message}`);
+    candidate = await attempt(fallback, error.message);
   }
 
   await writeFile(
     path,
     `${candidate}${candidate.endsWith("\n") ? "\n" : "\n\n"}${completionMarker}\n`,
   );
-  warnIfNotesChanged(path, original, stripped);
 }
 
 async function fetchReferenceEntries(references: Map<string, Reference>) {
@@ -144,11 +149,12 @@ reference, including individual action items and longer sections.
 For similarly named proposals, use the concrete subject of the passage to
 distinguish them. For example, an action item about adding unions to an
 empty-interface implementation belongs to the interfaces-and-unions proposal.
-Consider each candidate independently. If several references plausibly explain
-a passage, wrap the same text once per reference. Include indirect matches:
-for example, feedback from an implementation can belong on both its PR and
-the specification RFC whose design it informs. Multiple references can share
-the entire excerpt without splitting or repeating the prose.
+For a passage with relevant matches, one to three references is usually
+reasonable. Choose each for a concrete connection to the passage. For example,
+feedback from an implementation can belong on both its PR and the RFC whose
+design it informs. Use more than three only when the text clearly applies to
+each. When the topic changes mid-paragraph, end the span where its relevance
+ends.
 
 Keep bullet markers and indentation intact by placing inline comments around
 the text of individual items. For multi-block excerpts, put comments on their
@@ -158,14 +164,19 @@ Close each span before starting another span for that same reference.
 Before responding, go through the agenda item by item, including subitems.
 For each RFC still missing a tag, look for indirect mentions in the overview,
 decisions, and next steps. Deferral counts: if the notes say the remaining
-items were carried over, tag that sentence for every RFC covered by the
-carryover, using the agenda order to identify them. If the notes give no
+items were carried over, use the agenda order to identify which RFCs were
+deferred. A general request to review PRs is insufficient on its own. If the notes give no
 indication of either discussion or deferral, leave that RFC untagged.
 Removing your comments should recover the original text in the
 same order. If nothing matches, return the original notes verbatim.
 Do not add a completion marker.`;
 
-async function annotateNotes(apiKey: string, model: string, input: object) {
+async function annotateNotes(
+  apiKey: string,
+  model: string,
+  effort: "xhigh" | "medium",
+  input: object,
+) {
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
@@ -176,7 +187,7 @@ async function annotateNotes(apiKey: string, model: string, input: object) {
       model,
       instructions,
       input: JSON.stringify(input),
-      reasoning: { effort: "xhigh" },
+      reasoning: { effort },
       store: false,
       tools: [],
     }),
@@ -211,6 +222,7 @@ async function annotateNotes(apiKey: string, model: string, input: object) {
 function validateAnnotations(
   candidate: string,
   references: Map<string, Reference>,
+  original: string,
 ) {
   const open = new Set<string>();
   let stripped = "";
@@ -239,14 +251,20 @@ function validateAnnotations(
     }
     throw new RejectedOutput(`Invalid correlation marker ${marker}`);
   }
+  const warnings: string[] = [];
   if (open.size)
-    console.warn(
-      `Warning: Missing END marker for ${[...open].join(", ")}. The excerpt extends to EOF.`,
+    warnings.push(
+      `Missing END marker for ${[...open].join(", ")}. The excerpt extends to EOF.`,
     );
-  return stripped + candidate.slice(previousEnd);
+  const difference = notesDifference(
+    original,
+    stripped + candidate.slice(previousEnd),
+  );
+  if (difference) warnings.push(difference);
+  return warnings;
 }
 
-function warnIfNotesChanged(path: string, original: string, stripped: string) {
+function notesDifference(original: string, stripped: string) {
   const normalize = (text: string) => text.trim().replace(/\s+/g, " ");
   const before = normalize(original);
   const after = normalize(stripped);
@@ -258,10 +276,9 @@ function warnIfNotesChanged(path: string, original: string, stripped: string) {
   }
   const excerpt = (text: string) =>
     JSON.stringify(text.slice(Math.max(0, difference - 40), difference + 60));
-  console.warn(
-    `Warning: Luna changed the original text in ${path}. Saved the correlated notes.\n` +
-      `First difference (ignoring whitespace and correlation markers)\n` +
-      `  Original: ${excerpt(before)}\n` +
-      `  Luna:     ${excerpt(after)}`,
+  return (
+    `Original text changed. First difference (ignoring whitespace and correlation markers)\n` +
+    `  Original: ${excerpt(before)}\n` +
+    `  Output:   ${excerpt(after)}`
   );
 }
