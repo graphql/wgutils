@@ -96,6 +96,33 @@ test("reference links resolve in both the lookup and topic inputs", async (t) =>
   assert.ok((await readFile(file, "utf8")).endsWith(done + "\n"));
 });
 
+test("sibling lists retain their order and references at each topic depth", async (t) => {
+  const { run } = await fixture(
+    t,
+    [
+      "1. Updates",
+      "   - Background",
+      "   1. [Proposal](https://github.com/graphql/graphql-spec/pull/123)",
+      "      - Status",
+      "      1. [Implementation discussion](https://github.com/graphql/graphql-spec/pull/123)",
+    ].join("\n"),
+  );
+  const requests = responses(t, [notes]);
+  await run();
+  const [topic] = requests[0].agenda.topics;
+  assert.deepEqual(topic.subitems, [
+    { title: "Background", references: [] },
+    {
+      title: "Proposal",
+      references: [key],
+      subitems: [
+        { title: "Status", references: [] },
+        { title: "Implementation discussion", references: [key] },
+      ],
+    },
+  ]);
+});
+
 test("an external-only agenda is marked locally without credentials", async (t) => {
   const { run, file } = await fixture(
     t,

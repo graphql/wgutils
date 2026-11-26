@@ -5,7 +5,6 @@ import { remark } from "remark";
 import remarkGfm from "remark-gfm";
 import type {
   Root,
-  List,
   ListItem,
   PhrasingContent,
   Table,
@@ -296,10 +295,7 @@ function topicFromItem(item: ListItem, recordSource?: RecordItemSource): Topic {
   );
   const rawTitle = paragraph ? text(paragraph.children).trim() : "";
   const match = /\s*\(([^(),]+),\s*([^()]+)\)\s*$/.exec(rawTitle);
-  const sublist = item.children.find(
-    (child): child is List => child.type === "list",
-  );
-  const subitems = sublist ? subitemsFromList(sublist, recordSource) : [];
+  const subitems = subitemsFromItem(item, recordSource);
   const topic: Topic = {
     process: isNormalStuff(item),
     title: (match ? rawTitle.slice(0, match.index) : rawTitle).trim(),
@@ -311,18 +307,18 @@ function topicFromItem(item: ListItem, recordSource?: RecordItemSource): Topic {
   return topic;
 }
 
-function subitemsFromList(
-  list: List,
+function subitemsFromItem(
+  parent: ListItem,
   recordSource?: RecordItemSource,
 ): Subitem[] {
-  return list.children.map((item) => {
+  const items = parent.children.flatMap((child) =>
+    child.type === "list" ? child.children : [],
+  );
+  return items.map((item) => {
     const paragraph = item.children.find(
       (child): child is Paragraph => child.type === "paragraph",
     );
-    const sublist = item.children.find(
-      (child): child is List => child.type === "list",
-    );
-    const subitems = sublist ? subitemsFromList(sublist, recordSource) : [];
+    const subitems = subitemsFromItem(item, recordSource);
     const subitem: Subitem = {
       title: paragraph ? text(paragraph.children).trim() : "",
       ...(subitems.length > 0 ? { subitems } : null),
