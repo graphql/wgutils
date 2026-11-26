@@ -43,7 +43,7 @@ export async function correlateNotes(
     );
   }
   const [{ meeting, contents, itemSources }] = sources;
-  const localRepo = /^https:\/\/github\.com\/graphql\/([\w.-]+?)\/?$/i.exec(
+  const localRepo = /^https:\/\/github\.com\/([\w.-]+\/[\w.-]+)\/?$/i.exec(
     config.repoUrl,
   )?.[1];
   const references = new Map<string, Reference>();
@@ -110,7 +110,7 @@ only. Preserve every original word, including every word in headings, even
 when the original looks redundant or mistaken. Do not delete, replace,
 correct, summarize, or reorder any original text. Do not enclose the response
 in a code fence. Insert only paired comments, using exactly these forms:
-<!--BEGIN[graphql/repo#123]--> and <!--END[graphql/repo#123]-->.
+<!--BEGIN[owner/repo#123]--> and <!--END[owner/repo#123]-->.
 Match each agenda item's reference keys to the github object. Use the GitHub
 titles, descriptions, authors, and labels alongside the agenda topic to identify
 relevant passages, even when the notes omit the reference number. Use only keys
@@ -190,7 +190,7 @@ function validateAnnotations(
     /<!--\s*(?:BEGIN|END)\b[\s\S]*?(?:-->|$)/gi,
   )) {
     const [marker] = match;
-    const parsed = /^<!--(BEGIN|END)\[(graphql\/[\w.-]+#\d+)\]-->$/.exec(
+    const parsed = /^<!--(BEGIN|END)\[([\w.-]+\/[\w.-]+#\d+)\]-->$/.exec(
       marker,
     );
     if (!parsed) throw new Error(`Invalid correlation marker ${marker}`);

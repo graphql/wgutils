@@ -2,6 +2,7 @@ import { graphql } from "../../github.ts";
 
 export interface Reference {
   key: string;
+  owner: string;
   repo: string;
   number: number;
   discussion: boolean;
@@ -13,12 +14,13 @@ export function getReferences(
 ): Reference[] {
   const references: Reference[] = [];
 
-  function add(repo: string, digits: string, discussion = false) {
+  function add(repository: string, digits: string, discussion = false) {
     const number = Number(digits);
     if (number < 1 || number > 2_147_483_647) return;
-    repo = repo.toLowerCase();
+    const [owner, repo] = repository.toLowerCase().split("/");
     references.push({
-      key: `graphql/${repo}#${number}`,
+      key: `${owner}/${repo}#${number}`,
+      owner,
       repo,
       number,
       discussion,
@@ -42,7 +44,7 @@ export function getReferences(
   // Consume URLs first so their fragments cannot be mistaken for shorthand.
   const shorthand = source.replace(/https?:\/\/[^\s<>"`()[\]]+/gi, (url) => {
     const match =
-      /^https:\/\/github\.com\/graphql\/([\w.-]+)\/(issues|pulls?|discussions)\/(\d+)(?=$|[/?#.,:;!])/i.exec(
+      /^https:\/\/github\.com\/([\w.-]+\/[\w.-]+)\/(issues|pulls?|discussions)\/(\d+)(?=$|[/?#.,:;!])/i.exec(
         url,
       );
     if (match)
@@ -51,15 +53,10 @@ export function getReferences(
   });
 
   for (const match of shorthand.matchAll(
-    /(?<![\w/])(?:([\w.-]+)\/([\w.-]+))?#(\d+)\b/gi,
+    /(?<![\w/])(?:([\w.-]+\/[\w.-]+))?#(\d+)\b/gi,
   )) {
-    const [, owner, repo, number] = match;
-    const target = owner
-      ? owner.toLowerCase() === "graphql"
-        ? repo
-        : undefined
-      : localRepo;
-    if (target) add(target, number);
+    const [, repository = localRepo, number] = match;
+    if (repository) add(repository, number);
   }
   return references;
 }
@@ -89,12 +86,12 @@ export async function fetchReference(ref: Reference, token: string) {
         : `... on Issue { ${itemFields} } ... on PullRequest { ${itemFields} }`;
     const { data, errors } = await graphql({
       token,
-      query: `query($repo: String!, $number: Int!) {
-        repository(owner: "graphql", name: $repo) {
+      query: `query($owner: String!, $repo: String!, $number: Int!) {
+        repository(owner: $owner, name: $repo) {
           item: ${field}(number: $number) { __typename ${selection} }
         }
       }`,
-      variables: { repo: ref.repo, number: ref.number },
+      variables: { owner: ref.owner, repo: ref.repo, number: ref.number },
     });
     const item: GitHubItem | null | undefined = data?.repository?.item;
     const itemNotFound =
