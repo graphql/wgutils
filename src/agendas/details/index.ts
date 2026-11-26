@@ -11,7 +11,7 @@ import type {
   Table,
   Paragraph,
   Heading,
-  Definition,
+  RootContent,
 } from "mdast";
 import type { WgConfig } from "../../configSchema.ts";
 
@@ -101,15 +101,38 @@ export async function getAgendaSources(
     )
       continue;
     const itemSources = new Map<Topic | Subitem, string>();
-    const meeting = extractMeeting(
-      contents,
-      date,
-      includeItemSources ? itemSources : undefined,
+    const ast = markdown.parse(contents);
+    const sourceFor = includeItemSources
+      ? resolvedSource(ast, contents)
+      : undefined;
+    const topics = getTopics(
+      ast,
+      sourceFor &&
+        ((item, node) => {
+          itemSources.set(
+            item,
+            node.children
+              .filter((child) => child.type !== "list")
+              .map(sourceFor)
+              .join("\n"),
+          );
+        }),
     );
+    const meeting: AgendaMeeting = {
+      title: getTitle(ast),
+      start: date.toISOString(),
+      end: getEnd(contents, date)?.toISOString() ?? null,
+      attendees: getAttendees(ast),
+      topics,
+    };
     // A past agenda with fewer than two attendees generally represents a
     // meeting that did not take place.
     if (meeting.attendees.length < 2 && date <= new Date()) continue;
-    sources.push({ meeting, contents, itemSources });
+    sources.push({
+      meeting,
+      contents: sourceFor ? sourceFor(ast) : contents,
+      itemSources,
+    });
   }
   return sources.sort((a, b) => a.meeting.start.localeCompare(b.meeting.start));
 }
@@ -166,48 +189,36 @@ function matchesFilter(
   );
 }
 
-function extractMeeting(
-  contents: string,
-  start: Date,
-  itemSources?: Map<Topic | Subitem, string>,
-): AgendaMeeting {
-  const ast = markdown.parse(contents);
-  const attendees = getAttendees(ast);
+// Use document-wide Markdown definitions even when extracting a single topic.
+function resolvedSource(ast: Root, contents: string) {
   const definitions = new Map<string, string>();
-  if (itemSources) {
-    for (const node of ast.children) {
-      if (node.type === "definition" && !definitions.has(node.identifier)) {
-        definitions.set(node.identifier, node.url);
+  function collect(node: Root | RootContent) {
+    if (node.type === "definition" && !definitions.has(node.identifier))
+      definitions.set(node.identifier, node.url);
+    if ("children" in node) node.children.forEach(collect);
+  }
+  collect(ast);
+
+  function sourceFor(node: Root | RootContent): string {
+    const { start, end } = node.position!;
+    if (node.type === "definition") return node.url;
+    if (node.type === "linkReference") {
+      const url = definitions.get(node.identifier);
+      if (url) return `[${text(node.children)}](<${url}>)`;
+    }
+    let offset = start.offset!;
+    let result = "";
+    if ("children" in node) {
+      for (const child of node.children) {
+        result +=
+          contents.slice(offset, child.position!.start.offset) +
+          sourceFor(child);
+        offset = child.position!.end.offset!;
       }
     }
+    return result + contents.slice(offset, end.offset);
   }
-  const topics = getTopics(
-    ast,
-    itemSources &&
-      ((item, node) => {
-        const source = node.children
-          .filter((child) => child.type !== "list" && child.position)
-          .map((child) =>
-            contents.slice(
-              child.position!.start.offset,
-              child.position!.end.offset,
-            ),
-          );
-        for (const paragraph of node.children) {
-          if (paragraph.type === "paragraph") {
-            source.push(...referenceUrls(paragraph.children, definitions));
-          }
-        }
-        itemSources.set(item, source.join("\n"));
-      }),
-  );
-  return {
-    title: getTitle(ast),
-    start: start.toISOString(),
-    end: getEnd(contents, start)?.toISOString() ?? null,
-    attendees,
-    topics,
-  };
+  return sourceFor;
 }
 
 function getTitle(ast: Root): string {
@@ -253,21 +264,6 @@ function normaliseGitHubUsername(value: string): string | null {
       ? withoutAt
       : withoutAt.slice(0, firstInvalidCharacter);
   return username.replace(/[^a-z0-9]+$/i, "") || null;
-}
-
-function referenceUrls(
-  nodes: PhrasingContent[],
-  definitions: Map<Definition["identifier"], string>,
-): string[] {
-  return nodes.flatMap((node) => {
-    if (node.type === "linkReference") {
-      const url = definitions.get(node.identifier);
-      return url ? [url] : [];
-    }
-    return "children" in node
-      ? referenceUrls(node.children as PhrasingContent[], definitions)
-      : [];
-  });
 }
 
 type RecordItemSource = (item: Topic | Subitem, node: ListItem) => void;

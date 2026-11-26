@@ -125,13 +125,15 @@ and `<!--END[graphql/graphql-spec#300]-->`. Extractors should pair comments
 per reference because excerpts for different references can overlap. Empty
 pairs can serve as anchors for nearby context. A
 `<!-- wgutils:correlated-notes v1 -->` comment at the end makes repeat runs
-exit successfully without API calls.
+exit successfully without API calls. When the agenda has no eligible references,
+the command adds this marker locally without requiring API credentials.
 
-If the first output is rejected, changes the wording, or leaves a `BEGIN`
+If the first output is rejected, changes the wording or Markdown structure, or leaves a `BEGIN`
 without a matching `END`, the command retries once with `gpt-6.2-sol` at
 medium reasoning effort. Sol receives the original input and the validation
 feedback. Both requests use the same API key. If Sol's output still changes
-the wording or leaves an excerpt open, the command warns and saves it.
+the wording or Markdown structure, or leaves an excerpt open, the command warns and saves it.
+A final blank or marker-only response fails before the notes are written.
 Extractors can treat an open excerpt as extending to the end of the file.
 
 Library callers can import `correlateNotes` from `wgutils` and call

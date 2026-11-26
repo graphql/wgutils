@@ -1,5 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { remark } from "remark";
+import remarkGfm from "remark-gfm";
 import type { WgConfig } from "../../configSchema.ts";
 import { getToken } from "../../github.ts";
 import { getAgendaSources, type Subitem } from "../details/index.ts";
@@ -56,6 +58,8 @@ export async function correlateNotes(
     }
   }
 
+  if (references.size === 0) return save(original);
+
   function enrichItem<T extends Subitem>(item: T): EnrichedItem<T> {
     const { subitems, ...details } = item;
     const keys = getReferences(itemSources.get(item) ?? "", localRepo).map(
@@ -105,16 +109,19 @@ export async function correlateNotes(
     candidate = await attempt(fallback, error.message);
   }
 
-  await writeFile(
-    path,
-    `${candidate}${candidate.endsWith("\n") ? "\n" : "\n\n"}${completionMarker}\n`,
-  );
+  await save(candidate);
+
+  function save(notes: string) {
+    return writeFile(
+      path,
+      `${notes}${notes.endsWith("\n") ? "\n" : "\n\n"}${completionMarker}\n`,
+    );
+  }
 }
 
 async function fetchReferenceEntries(references: Map<string, Reference>) {
   const entries: Array<[string, Awaited<ReturnType<typeof fetchReference>>]> =
     [];
-  if (!references.size) return entries;
   const token = getToken();
   if (!token)
     throw new Error(
@@ -256,19 +263,27 @@ function validateAnnotations(
     warnings.push(
       `Missing END marker for ${[...open].join(", ")}. The excerpt extends to EOF.`,
     );
-  const difference = notesDifference(
-    original,
-    stripped + candidate.slice(previousEnd),
-  );
+  stripped += candidate.slice(previousEnd);
+  if (!stripped.trim()) throw new RejectedOutput("OpenAI returned blank notes");
+  const difference = notesDifference(original, stripped);
   if (difference) warnings.push(difference);
   return warnings;
 }
 
 function notesDifference(original: string, stripped: string) {
-  const normalize = (text: string) => text.trim().replace(/\s+/g, " ");
-  const before = normalize(original);
-  const after = normalize(stripped);
+  const before = original.replace(/\r\n/g, "\n");
+  const after = stripped.replace(/\r\n/g, "\n");
   if (before === after) return;
+
+  // Blank lines around standalone markers can disappear when Markdown renders.
+  // Compare the parsed blocks so significant indentation and breaks survive.
+  const markdown = remark().use(remarkGfm);
+  const tree = (source: string) =>
+    JSON.stringify(markdown.parse(source), (key, value) =>
+      key === "position" ? undefined : value,
+    );
+  const words = (text: string) => text.trim().replace(/\s+/g, " ");
+  if (words(before) === words(after) && tree(before) === tree(after)) return;
 
   let difference = 0;
   while (before[difference] === after[difference]) {
@@ -277,7 +292,7 @@ function notesDifference(original: string, stripped: string) {
   const excerpt = (text: string) =>
     JSON.stringify(text.slice(Math.max(0, difference - 40), difference + 60));
   return (
-    `Original text changed. First difference (ignoring whitespace and correlation markers)\n` +
+    `Original text or Markdown structure changed. First difference after removing correlation markers\n` +
     `  Original: ${excerpt(before)}\n` +
     `  Output:   ${excerpt(after)}`
   );
