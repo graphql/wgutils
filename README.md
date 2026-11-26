@@ -127,14 +127,17 @@ pairs can serve as anchors for nearby context. A
 `<!-- wgutils:correlated-notes v1 -->` comment at the end makes repeat runs
 exit successfully without API calls.
 
-If a `BEGIN` has no matching `END`, the command warns and saves the notes.
-Extractors can treat the excerpt as extending to the end of the file.
+If the first output is rejected, changes the wording, or leaves a `BEGIN`
+without a matching `END`, the command retries once with `gpt-6.2-sol` at
+medium reasoning effort. Sol receives the original input and the validation
+feedback. Both requests use the same API key. If Sol's output still changes
+the wording or leaves an excerpt open, the command warns and saves it.
+Extractors can treat an open excerpt as extending to the end of the file.
 
 Library callers can import `correlateNotes` from `wgutils` and call
 `await correlateNotes(config, "2026-10-22")`. Input, lookup, API, and
-marker validation failures reject the promise and cause the CLI to exit
-non-zero. If Luna changes the original text, the command saves the result
-and warns on stderr with an excerpt showing the first difference.
+final marker validation failures reject the promise and cause the CLI to exit
+non-zero without overwriting the notes.
 
 ## wgutils spec build
 
