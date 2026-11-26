@@ -144,19 +144,24 @@ reference, including individual action items and longer sections.
 For similarly named proposals, use the concrete subject of the passage to
 distinguish them. For example, an action item about adding unions to an
 empty-interface implementation belongs to the interfaces-and-unions proposal.
-If the notes are ambiguous and several references plausibly apply, tag the
-passage for each of them. Favor including a plausible match over leaving out a
-relevant mention. Apply both a specification PR and its implementation PR when
-the passage discusses both.
+Consider each candidate independently. If several references plausibly explain
+a passage, wrap the same text once per reference. Include indirect matches:
+for example, feedback from an implementation can belong on both its PR and
+the specification RFC whose design it informs. Multiple references can share
+the entire excerpt without splitting or repeating the prose.
 
 Keep bullet markers and indentation intact by placing inline comments around
 the text of individual items. For multi-block excerpts, put comments on their
 own lines with blank lines as needed to retain the Markdown structure.
 A passage can relate to multiple references. Different references may overlap.
 Close each span before starting another span for that same reference.
-Before responding, scan the overview, action items, and detailed notes once
-more for missed mentions, including follow-ups that refer to the topic
-indirectly. Removing your comments should recover the original text in the
+Before responding, go through the agenda item by item, including subitems.
+For each RFC still missing a tag, look for indirect mentions in the overview,
+decisions, and next steps. Deferral counts: if the notes say the remaining
+items were carried over, tag that sentence for every RFC covered by the
+carryover, using the agenda order to identify them. If the notes give no
+indication of either discussion or deferral, leave that RFC untagged.
+Removing your comments should recover the original text in the
 same order. If nothing matches, return the original notes verbatim.
 Do not add a completion marker.`;
 
