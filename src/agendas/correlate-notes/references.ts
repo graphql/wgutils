@@ -31,6 +31,13 @@ export function getReferences(
     /\[(?:[\w.-]+\/[\w.-]+)?#\d+\](?=\(\s*<?https?:\/\/)/gi,
     "",
   );
+  source = source.replace(
+    /\[[^\]\n]+\](?=\(\s*<?https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/(?:issues|pulls?|discussions)\/(\d+)\b)/gi,
+    (link, number: string) =>
+      link.replace(/(?<![\w/])#\d+\b/g, (ref) =>
+        ref === `#${number}` ? "" : ref,
+      ),
+  );
 
   // Consume URLs first so their fragments cannot be mistaken for shorthand.
   const shorthand = source.replace(/https?:\/\/[^\s<>"`()[\]]+/gi, (url) => {

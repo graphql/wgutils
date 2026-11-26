@@ -82,7 +82,11 @@ export async function getAgendaSources(
   const files = await markdownFiles(agendaDirectory);
   const sources: AgendaSource[] = [];
   for (const file of files) {
-    const contents = await readFile(file, "utf8");
+    const contents = (await readFile(file, "utf8")).replace(
+      /https?:\/\/github\.com\/facebook\/graphql(?:-(js|spec))?(?=$|[/?#\s<>()[\]"'])/gi,
+      (_url, suffix = "spec") =>
+        `https://github.com/graphql/graphql-${suffix.toLowerCase()}`,
+    );
     // A cancelled agenda may no longer have the normal date, attendee, or
     // agenda sections, so recognise it before trying to extract those fields.
     if (looksLikeItMightHaveBeenCancelled(contents)) continue;
