@@ -1,5 +1,5 @@
 import { readdir, readFile } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { join, relative, sep } from "node:path";
 import { normalizeGitHubRepository } from "../../github.ts";
 import { remark } from "remark";
 import remarkGfm from "remark-gfm";
@@ -43,10 +43,13 @@ export interface Subitem {
 }
 
 export interface AgendaMeeting {
+  /** Repo-relative path to the agenda Markdown file. */
+  path: string;
   title: string;
   start: string;
   end: string | null;
   attendees: Attendee[];
+  hasSignups: boolean;
   topics: Topic[];
 }
 
@@ -74,12 +77,14 @@ export async function getAgendaSources(
   includeItemSources = false,
 ): Promise<AgendaSource[]> {
   validateFilter(filter);
+  const repoRoot = process.cwd();
   const agendaDirectory = join(
-    process.cwd(),
+    repoRoot,
     config.repoSubpath ?? "",
     config.agendasFolder ?? "agendas",
   );
   const files = await markdownFiles(agendaDirectory);
+  const prefilled = getAttendees(markdown.parse(config.attendeesTemplate));
   const sources: AgendaSource[] = [];
   for (const file of files) {
     const contents = (await readFile(file, "utf8")).replace(
@@ -117,11 +122,18 @@ export async function getAgendaSources(
           );
         }),
     );
+    const attendees = getAttendees(ast);
     const meeting: AgendaMeeting = {
+      path: relative(repoRoot, file).split(sep).join("/"),
       title: getTitle(ast),
       start: date.toISOString(),
       end: getEnd(contents, date)?.toISOString() ?? null,
-      attendees: getAttendees(ast),
+      attendees,
+      hasSignups: attendees.some(
+        (attendee) =>
+          (attendee.name !== "" || attendee.github !== null) &&
+          !prefilled.some((other) => sameAttendee(attendee, other)),
+      ),
       topics,
     };
     // A past agenda with fewer than two attendees generally represents a
@@ -256,6 +268,12 @@ export function getAttendees(ast: Root): Attendee[] {
   });
 }
 
+function sameAttendee(a: Attendee, b: Attendee): boolean {
+  return a.github && b.github
+    ? a.github.toLowerCase() === b.github.toLowerCase()
+    : a.name.toLowerCase() === b.name.toLowerCase();
+}
+
 function normaliseGitHubUsername(value: string): string | null {
   const withoutPrefix = value.replace(/^https:\/\/github\.com\//i, "");
   const withoutAt = withoutPrefix.replace(/^@/, "");
@@ -361,7 +379,12 @@ function normalise(value: string) {
 function getEnd(contents: string, start: Date): Date | null {
   const match = /\*\*Date & Time\*\*:\s*\[([^\]]+)\]/.exec(contents);
   if (!match) return null;
-  const times = [...match[1].matchAll(/(\d{1,2}):(\d{2})\s*(AM|PM)/gi)];
+  // A range may share its final AM/PM marker, as in "6:00 – 7:00 PM".
+  const label = match[1].replace(
+    /(\d{1,2}:\d{2})(\s*[–—-]\s*\d{1,2}:\d{2}\s*(AM|PM))/gi,
+    "$1 $3$2",
+  );
+  const times = [...label.matchAll(/(\d{1,2}):(\d{2})\s*(AM|PM)/gi)];
   if (times.length < 2) return null;
   const toMinutes = (time: RegExpMatchArray) =>
     ((+time[1] % 12) + (/pm/i.test(time[3]) ? 12 : 0)) * 60 + +time[2];
