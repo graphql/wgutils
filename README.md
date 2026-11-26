@@ -115,10 +115,16 @@ wgutils agenda correlate-notes 2026-10-22
 
 Run the command from the working group's repository root. It reads
 `notes/YYYY/summary-YYYY-MM-DD.md` and the matching agenda, respecting the
-configured `repoSubpath`. GitHub lookups use `GITHUB_TOKEN`, `GH_TOKEN`, or
-`gh auth token`. Set `OPENAI_API_KEY` and `OPENAI_MODEL` to a model that
-supports the Responses API with `xhigh` reasoning effort. The request sends the
-notes and agenda context to OpenAI with response storage disabled and no tools.
+configured `repoSubpath`.
+
+GitHub lookups use `GITHUB_TOKEN`, `GH_TOKEN`, or `gh auth token`.
+
+The request sends the notes and agenda context to OpenAI with response storage
+disabled and no tools. Set `OPENAI_API_KEY` to enable querying the language
+model. Optionally select `OPENAI_MODEL` (default `gpt-6-luna`),
+`OPENAI_REASONING` (default `xhigh`), `OPENAI_FALLBACK_MODEL` (default
+`gpt-6.2-sol`), and `OPENAI_FALLBACK_REASONING` (default `medium` if models
+differ, otherwise `xhigh`).
 
 The notes use paired comments such as `<!--BEGIN[graphql/graphql-spec#300]-->`
 and `<!--END[graphql/graphql-spec#300]-->`. Extractors should pair comments
@@ -128,15 +134,15 @@ pairs can serve as anchors for nearby context. A
 exit successfully without API calls. When the agenda has no eligible references,
 the command adds this marker locally without requiring API credentials.
 
-If the first output is rejected, changes the wording or Markdown structure, or leaves a `BEGIN`
-without a matching `END`, the command retries once with `gpt-6.2-sol` at
-medium reasoning effort. Sol receives the original input and the validation
-feedback. Both requests use the same API key. If Sol's output still changes
-the wording or Markdown structure, or leaves an excerpt open, the command warns and saves it.
-Marker placement must preserve the rendered Markdown. If both attempts fail
-that check, or the final response is blank or marker-only, the command exits
-without writing the notes.
-Extractors can treat an open excerpt as extending to the end of the file.
+If the first output is rejected, changes the wording or Markdown structure, or
+leaves a `BEGIN` without a matching `END`, the command retries once with
+fallback model, passing the original input along with validation feedback. Both
+requests use the same API key. If the output still changes the wording or
+Markdown structure, or leaves an excerpt open, the command warns and saves it.
+Marker placement must preserve the rendered Markdown. If both attempts fail that
+check, or the final response is blank or marker-only, the command exits without
+writing the notes. Extractors can treat an open excerpt as extending to the end
+of the file.
 
 Library callers can import `correlateNotes` from `wgutils` and call
 `await correlateNotes(config, "2026-10-22")`. Input, lookup, API, and
