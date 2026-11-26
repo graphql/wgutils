@@ -6,12 +6,12 @@
   },
   {
     "color": "b60205",
-    "description": "RFC Stage X (See CONTRIBUTING.md) as it has been replaced by a newer proposal",
+    "description": "RFC Stage X (See https://github.com/graphql/graphql-spec/blob/main/CONTRIBUTING.md) as it has been replaced by a newer proposal",
     "name": "🌱 Superseded (RFC X)"
   },
   {
     "color": "35df11",
-    "description": "RFC Stage 3 (See CONTRIBUTING.md)",
+    "description": "RFC Stage 3 (See https://github.com/graphql/graphql-spec/blob/main/CONTRIBUTING.md)",
     "name": "🏁 Accepted (RFC 3)"
   },
   {
@@ -21,27 +21,27 @@
   },
   {
     "color": "5c6fa7",
-    "description": "RFC Needs a champion to progress (See CONTRIBUTING.md)",
+    "description": "RFC Needs a champion to progress (See https://github.com/graphql/graphql-spec/blob/main/CONTRIBUTING.md)",
     "name": "👻 Needs Champion"
   },
   {
     "color": "fcc8c7",
-    "description": "RFC Stage 1 (See CONTRIBUTING.md)",
+    "description": "RFC Stage 1 (See https://github.com/graphql/graphql-spec/blob/main/CONTRIBUTING.md)",
     "name": "💡 Proposal (RFC 1)"
   },
   {
     "color": "eac248",
-    "description": "RFC Stage 0 (See CONTRIBUTING.md)",
+    "description": "RFC Stage 0 (See https://github.com/graphql/graphql-spec/blob/main/CONTRIBUTING.md)",
     "name": "💭 Strawman (RFC 0)"
   },
   {
     "color": "13dde4",
-    "description": "RFC Stage 2 (See CONTRIBUTING.md)",
+    "description": "RFC Stage 2 (See https://github.com/graphql/graphql-spec/blob/main/CONTRIBUTING.md)",
     "name": "📄 Draft (RFC 2)"
   },
   {
     "color": "ff4266",
-    "description": "RFC Stage X (See CONTRIBUTING.md)",
+    "description": "RFC Stage X (See https://github.com/graphql/graphql-spec/blob/main/CONTRIBUTING.md)",
     "name": "🗑 Rejected (RFC X)"
   },
   {
