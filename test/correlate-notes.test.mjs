@@ -134,3 +134,71 @@ test("blank retry leaves the original file intact", async (t) => {
   await assert.rejects(run(), /blank/);
   assert.equal(await readFile(file, "utf8"), notes);
 });
+
+test("emphasized GitHub URLs reach both lookup and topic inputs", async (t) => {
+  const { run } = await fixture(
+    t,
+    "1. **https://github.com/graphql/graphql-spec/pull/123**",
+  );
+  const requests = responses(t, [notes]);
+  await run();
+  assert.equal(lookup.mock.callCount(), 1);
+  assert.deepEqual(requests[0].agenda.topics[0].references, [key]);
+});
+
+test("unused definitions do not trigger GitHub or model requests", async (t) => {
+  const { run, file } = await fixture(
+    t,
+    "1. Updates\n\n[old-proposal]: https://github.com/graphql/graphql-spec/pull/123",
+  );
+  responses(t, []);
+  await run();
+  assert.equal(lookup.mock.callCount(), 0);
+  assert.equal(await readFile(file, "utf8"), notes + "\n" + done + "\n");
+});
+
+for (const [name, line] of [
+  ["list item", "- Follow up"],
+  ["heading", "## Follow up"],
+]) {
+  test("misplaced marker before a " + name + " triggers a retry", async (t) => {
+    const { run, file } = await fixture(t);
+    await writeFile(file, line);
+    const valid = line.replace("Follow", begin + "Follow" + end);
+    const requests = responses(t, [begin + line + end, valid]);
+    await run();
+    assert.match(requests[1].previousFailure, /marker placement/);
+    assert.equal(await readFile(file, "utf8"), valid + "\n\n" + done + "\n");
+  });
+}
+
+test("misplaced markers on both attempts preserve the original", async (t) => {
+  const { run, file } = await fixture(t);
+  const invalid = begin + notes + end;
+  responses(t, [invalid, invalid]);
+  await assert.rejects(run(), /marker placement/);
+  assert.equal(await readFile(file, "utf8"), notes);
+});
+
+test("markers around a tight list item's quoted text preserve the list", async (t) => {
+  const { run, file } = await fixture(t);
+  const action = 'Review the "matches" directive';
+  await writeFile(file, "- " + action);
+  const annotated = "- " + begin + action + end;
+  const requests = responses(t, [annotated]);
+  await run();
+  assert.equal(requests.length, 1);
+  assert.equal(await readFile(file, "utf8"), annotated + "\n\n" + done + "\n");
+});
+
+test("a marker that hides emphasis inside a tight list item triggers a retry", async (t) => {
+  const { run, file } = await fixture(t);
+  const action = "- Check **this**";
+  await writeFile(file, action);
+  const requests = responses(t, [
+    "- " + begin + "Check **this**" + end,
+    action,
+  ]);
+  await run();
+  assert.match(requests[1].previousFailure, /marker placement/);
+});

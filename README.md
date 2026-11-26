@@ -133,7 +133,9 @@ without a matching `END`, the command retries once with `gpt-6.2-sol` at
 medium reasoning effort. Sol receives the original input and the validation
 feedback. Both requests use the same API key. If Sol's output still changes
 the wording or Markdown structure, or leaves an excerpt open, the command warns and saves it.
-A final blank or marker-only response fails before the notes are written.
+Marker placement must preserve the rendered Markdown. If both attempts fail
+that check, or the final response is blank or marker-only, the command exits
+without writing the notes.
 Extractors can treat an open excerpt as extending to the end of the file.
 
 Library callers can import `correlateNotes` from `wgutils` and call

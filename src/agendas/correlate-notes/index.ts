@@ -1,5 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import type { Root, RootContent } from "mdast";
 import { remark } from "remark";
 import remarkGfm from "remark-gfm";
 import type { WgConfig } from "../../configSchema.ts";
@@ -164,8 +165,11 @@ each. When the topic changes mid-paragraph, end the span where its relevance
 ends.
 
 Keep bullet markers and indentation intact by placing inline comments around
-the text of individual items. For multi-block excerpts, put comments on their
-own lines with blank lines as needed to retain the Markdown structure.
+the text of individual items. Keep list bullets and heading prefixes before
+inline comments. To tag a whole paragraph or section, put its BEGIN and END
+comments on their own lines, separated from the Markdown by blank lines.
+A comment at the start of a line with prose after it turns the prose into
+a raw HTML block.
 A passage can relate to multiple references. Different references may overlap.
 Close each span before starting another span for that same reference.
 Before responding, go through the agenda item by item, including subitems.
@@ -265,9 +269,62 @@ function validateAnnotations(
     );
   stripped += candidate.slice(previousEnd);
   if (!stripped.trim()) throw new RejectedOutput("OpenAI returned blank notes");
+  if (
+    candidate !== stripped &&
+    markdownTree(candidate) !== markdownTree(stripped)
+  )
+    throw new RejectedOutput(
+      "Correlation marker placement changes the Markdown structure. Place inline markers inside the heading, list item, or paragraph, or put block markers on separate lines.",
+    );
   const difference = notesDifference(original, stripped);
   if (difference) warnings.push(difference);
   return warnings;
+}
+
+const markdown = remark().use(remarkGfm);
+
+function markdownTree(source: string) {
+  function normalize(node: Root | RootContent, tightItem: boolean): object {
+    if (!("children" in node)) return node;
+    const children: RootContent[] = [];
+    for (let child of node.children) {
+      if (child.type === "html") {
+        const visible = child.value.replace(
+          /<!--(?:BEGIN|END)\[[\w.-]+\/[\w.-]+#\d+\]-->/g,
+          "",
+        );
+        if (visible !== child.value) {
+          if (!visible.trim()) continue;
+          // A tight item's paragraph has no <p> wrapper. A comment followed by
+          // literal text renders identically there, even if parsed as raw HTML.
+          if (tightItem && !/[<&]/.test(visible))
+            child = {
+              type: "paragraph",
+              children: [{ type: "text", value: visible }],
+            };
+        }
+      }
+      const previous = children.at(-1);
+      if (child.type === "text" && previous?.type === "text") {
+        // Removing an inline comment reunites the text nodes on either side.
+        previous.value += child.value;
+      } else {
+        children.push(child);
+      }
+    }
+    const tightList =
+      node.type === "list" &&
+      !node.spread &&
+      node.children.every((item) => !item.spread);
+    return {
+      ...node,
+      children: children.map((child) => normalize(child, tightList)),
+    };
+  }
+  return JSON.stringify(
+    normalize(markdown.parse(source), false),
+    (key, value) => (key === "position" ? undefined : value),
+  );
 }
 
 function notesDifference(original: string, stripped: string) {
@@ -277,13 +334,12 @@ function notesDifference(original: string, stripped: string) {
 
   // Blank lines around standalone markers can disappear when Markdown renders.
   // Compare the parsed blocks so significant indentation and breaks survive.
-  const markdown = remark().use(remarkGfm);
-  const tree = (source: string) =>
-    JSON.stringify(markdown.parse(source), (key, value) =>
-      key === "position" ? undefined : value,
-    );
   const words = (text: string) => text.trim().replace(/\s+/g, " ");
-  if (words(before) === words(after) && tree(before) === tree(after)) return;
+  if (
+    words(before) === words(after) &&
+    markdownTree(before) === markdownTree(after)
+  )
+    return;
 
   let difference = 0;
   while (before[difference] === after[difference]) {

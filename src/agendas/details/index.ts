@@ -201,7 +201,9 @@ function resolvedSource(ast: Root, contents: string) {
 
   function sourceFor(node: Root | RootContent): string {
     const { start, end } = node.position!;
-    if (node.type === "definition") return node.url;
+    if (node.type === "definition") return "";
+    if (node.type === "link" && text(node.children) === node.url)
+      return `<${node.url}>`;
     if (node.type === "linkReference") {
       const url = definitions.get(node.identifier);
       if (url) return `[${text(node.children)}](<${url}>)`;
