@@ -74,9 +74,14 @@ export async function correlateNotes(
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL;
-  if (!apiKey || !model)
-    throw new Error("Set OPENAI_API_KEY and OPENAI_MODEL to correlate notes");
+  if (!apiKey) throw new Error("Set OPENAI_API_KEY to correlate notes");
+
+  const model = process.env.OPENAI_MODEL ?? "gpt-6-luna";
+  const reasoning = process.env.OPENAI_REASONING ?? "xhigh";
+  const fallbackModel = process.env.OPENAI_FALLBACK_MODEL ?? "gpt-6.2-sol";
+  const fallbackReasoning =
+    process.env.OPENAI_FALLBACK_REASONING ??
+    (fallbackModel === model ? "xhigh" : "medium");
 
   const github = Object.fromEntries(await fetchReferenceEntries(references));
   const input = {
@@ -84,11 +89,15 @@ export async function correlateNotes(
     github,
     notes: original,
   };
-  const attempt = async (model: string, previousFailure?: string) => {
+  const attempt = async (
+    model: string,
+    reasoning: string,
+    previousFailure?: string,
+  ) => {
     const candidate = await annotateNotes(
       apiKey,
       model,
-      previousFailure === undefined ? "xhigh" : "medium",
+      reasoning,
       previousFailure === undefined ? input : { ...input, previousFailure },
     );
     const warnings = validateAnnotations(candidate, references, original);
@@ -102,12 +111,13 @@ export async function correlateNotes(
 
   let candidate: string;
   try {
-    candidate = await attempt(model);
+    candidate = await attempt(model, reasoning);
   } catch (error) {
     if (!(error instanceof RejectedOutput)) throw error;
-    const fallback = "gpt-6.2-sol";
-    console.warn(`Retrying ${path} with ${fallback}: ${error.message}`);
-    candidate = await attempt(fallback, error.message);
+    console.warn(
+      `Retrying ${path} with ${fallbackModel}:${fallbackReasoning}: ${error.message}`,
+    );
+    candidate = await attempt(fallbackModel, fallbackReasoning, error.message);
   }
 
   await save(candidate);
@@ -185,7 +195,7 @@ Do not add a completion marker.`;
 async function annotateNotes(
   apiKey: string,
   model: string,
-  effort: "xhigh" | "medium",
+  effort: string,
   input: object,
 ) {
   const response = await fetch("https://api.openai.com/v1/responses", {
