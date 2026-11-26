@@ -1,6 +1,7 @@
 import type { Argv } from "yargs";
 import * as genCmd from "./gen/cli.ts";
 import * as detailsCmd from "./details/cli.ts";
+import * as correlateNotesCmd from "./correlate-notes/cli.ts";
 import type { ArgsFromOptions } from "../interfaces.ts";
 
 export function options(yargs: Argv) {
@@ -16,6 +17,12 @@ export function options(yargs: Argv) {
       "Show details from agenda files",
       detailsCmd.options,
       detailsCmd.run,
+    )
+    .command(
+      "correlate-notes <date>",
+      "Mark up Zoom notes with matching agenda references",
+      correlateNotesCmd.options,
+      correlateNotesCmd.run,
     )
     .demandCommand();
 }

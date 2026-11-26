@@ -1,17 +1,24 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
+import { normalizeGitHubRepository } from "../../github.ts";
 import { remark } from "remark";
 import remarkGfm from "remark-gfm";
 import type {
   Root,
-  List,
   ListItem,
   PhrasingContent,
   Table,
   Paragraph,
   Heading,
+  RootContent,
 } from "mdast";
 import type { WgConfig } from "../../configSchema.ts";
+
+import {
+  getAgendaDate,
+  getAgendaPathDay,
+  looksLikeItMightHaveBeenCancelled,
+} from "../metadata.ts";
 
 const markdown = remark().use(remarkGfm);
 
@@ -47,10 +54,25 @@ export interface AgendaDetails {
   meetings: AgendaMeeting[];
 }
 
+interface AgendaSource {
+  meeting: AgendaMeeting;
+  contents: string;
+  itemSources: Map<Topic | Subitem, string>;
+}
+
 export async function getAgendaDetails(
   config: WgConfig,
   filter: { year?: string; month?: string; day?: string },
 ): Promise<AgendaDetails> {
+  const sources = await getAgendaSources(config, filter);
+  return { meetings: sources.map(({ meeting }) => meeting) };
+}
+
+export async function getAgendaSources(
+  config: WgConfig,
+  filter: { year?: string; month?: string; day?: string },
+  includeItemSources = false,
+): Promise<AgendaSource[]> {
   validateFilter(filter);
   const agendaDirectory = join(
     process.cwd(),
@@ -58,23 +80,60 @@ export async function getAgendaDetails(
     config.agendasFolder ?? "agendas",
   );
   const files = await markdownFiles(agendaDirectory);
-  const meetings: AgendaMeeting[] = [];
+  const sources: AgendaSource[] = [];
   for (const file of files) {
-    const contents = await readFile(file, "utf8");
+    const contents = (await readFile(file, "utf8")).replace(
+      /https?:\/\/github\.com\/(facebook\/graphql(?:-js|-spec)?|robrichard\/defer-stream-wg)(?=$|[/?#\s<>()[\]"'])/gi,
+      (_url, repository: string) =>
+        `https://github.com/${normalizeGitHubRepository(repository)}`,
+    );
     // A cancelled agenda may no longer have the normal date, attendee, or
     // agenda sections, so recognise it before trying to extract those fields.
     if (looksLikeItMightHaveBeenCancelled(contents)) continue;
     const date = getAgendaDate(contents);
-    if (!date || !matchesFilter(agendaDay(file, agendaDirectory, date), filter))
+    if (
+      !date ||
+      !matchesFilter(
+        getAgendaPathDay(relative(agendaDirectory, file)) ?? date,
+        filter,
+      )
+    )
       continue;
-    const meeting = extractMeeting(contents, date);
+    const itemSources = new Map<Topic | Subitem, string>();
+    const ast = markdown.parse(contents);
+    const sourceFor = includeItemSources
+      ? resolvedSource(ast, contents)
+      : undefined;
+    const topics = getTopics(
+      ast,
+      sourceFor &&
+        ((item, node) => {
+          itemSources.set(
+            item,
+            node.children
+              .filter((child) => child.type !== "list")
+              .map(sourceFor)
+              .join("\n"),
+          );
+        }),
+    );
+    const meeting: AgendaMeeting = {
+      title: getTitle(ast),
+      start: date.toISOString(),
+      end: getEnd(contents, date)?.toISOString() ?? null,
+      attendees: getAttendees(ast),
+      topics,
+    };
     // A past agenda with fewer than two attendees generally represents a
     // meeting that did not take place.
     if (meeting.attendees.length < 2 && date <= new Date()) continue;
-    meetings.push(meeting);
+    sources.push({
+      meeting,
+      contents: sourceFor ? sourceFor(ast) : contents,
+      itemSources,
+    });
   }
-  meetings.sort((a, b) => a.start.localeCompare(b.start));
-  return { meetings };
+  return sources.sort((a, b) => a.meeting.start.localeCompare(b.meeting.start));
 }
 
 function validateFilter(filter: {
@@ -129,32 +188,38 @@ function matchesFilter(
   );
 }
 
-// Prefer the date encoded in the generated agenda path. The timestamp in the
-// timeanddate link is UTC, so it can belong to the preceding local calendar day.
-function agendaDay(
-  file: string,
-  agendaDirectory: string,
-  fallback: Date,
-): Date {
-  const match = /^(\d{4})\/(\d{2})-[^/]+\/(\d{2})-/.exec(
-    relative(agendaDirectory, file),
-  );
-  return match
-    ? new Date(Date.UTC(+match[1], +match[2] - 1, +match[3]))
-    : fallback;
-}
+// Use document-wide Markdown definitions even when extracting a single topic.
+function resolvedSource(ast: Root, contents: string) {
+  const definitions = new Map<string, string>();
+  function collect(node: Root | RootContent) {
+    if (node.type === "definition" && !definitions.has(node.identifier))
+      definitions.set(node.identifier, node.url);
+    if ("children" in node) node.children.forEach(collect);
+  }
+  collect(ast);
 
-function extractMeeting(contents: string, start: Date): AgendaMeeting {
-  const ast = markdown.parse(contents);
-  const attendees = getAttendees(ast);
-  const topics = getTopics(ast);
-  return {
-    title: getTitle(ast),
-    start: start.toISOString(),
-    end: getEnd(contents, start)?.toISOString() ?? null,
-    attendees,
-    topics,
-  };
+  function sourceFor(node: Root | RootContent): string {
+    const { start, end } = node.position!;
+    if (node.type === "definition") return "";
+    if (node.type === "link" && text(node.children) === node.url)
+      return `<${node.url}>`;
+    if (node.type === "linkReference") {
+      const url = definitions.get(node.identifier);
+      if (url) return `[${text(node.children)}](<${url}>)`;
+    }
+    let offset = start.offset!;
+    let result = "";
+    if ("children" in node) {
+      for (const child of node.children) {
+        result +=
+          contents.slice(offset, child.position!.start.offset) +
+          sourceFor(child);
+        offset = child.position!.end.offset!;
+      }
+    }
+    return result + contents.slice(offset, end.offset);
+  }
+  return sourceFor;
 }
 
 function getTitle(ast: Root): string {
@@ -202,7 +267,9 @@ function normaliseGitHubUsername(value: string): string | null {
   return username.replace(/[^a-z0-9]+$/i, "") || null;
 }
 
-function getTopics(ast: Root): Topic[] {
+type RecordItemSource = (item: Topic | Subitem, node: ListItem) => void;
+
+function getTopics(ast: Root, recordSource?: RecordItemSource): Topic[] {
   for (let i = 0; i < ast.children.length - 1; i++) {
     const node = ast.children[i];
     if (
@@ -211,49 +278,53 @@ function getTopics(ast: Root): Topic[] {
     ) {
       for (const following of ast.children.slice(i + 1)) {
         if (following.type === "heading") return [];
-        if (following.type === "list") return topicsFromList(following);
+        if (following.type === "list") {
+          return following.children.map((item) =>
+            topicFromItem(item, recordSource),
+          );
+        }
       }
     }
   }
   return [];
 }
 
-function topicsFromList(list: List): Topic[] {
-  return list.children.map((item) => topicFromItem(item));
-}
-
-function topicFromItem(item: ListItem): Topic {
+function topicFromItem(item: ListItem, recordSource?: RecordItemSource): Topic {
   const paragraph = item.children.find(
     (child): child is Paragraph => child.type === "paragraph",
   );
   const rawTitle = paragraph ? text(paragraph.children).trim() : "";
   const match = /\s*\(([^(),]+),\s*([^()]+)\)\s*$/.exec(rawTitle);
-  const sublist = item.children.find(
-    (child): child is List => child.type === "list",
-  );
-  const subitems = sublist ? subitemsFromList(sublist) : [];
-  return {
+  const subitems = subitemsFromItem(item, recordSource);
+  const topic: Topic = {
     process: isNormalStuff(item),
     title: (match ? rawTitle.slice(0, match.index) : rawTitle).trim(),
     duration: match?.[1].trim() ?? null,
     owner: match?.[2].trim() ?? null,
     ...(subitems.length > 0 ? { subitems } : null),
   };
+  recordSource?.(topic, item);
+  return topic;
 }
 
-function subitemsFromList(list: List): Subitem[] {
-  return list.children.map((item) => {
+function subitemsFromItem(
+  parent: ListItem,
+  recordSource?: RecordItemSource,
+): Subitem[] {
+  const items = parent.children.flatMap((child) =>
+    child.type === "list" ? child.children : [],
+  );
+  return items.map((item) => {
     const paragraph = item.children.find(
       (child): child is Paragraph => child.type === "paragraph",
     );
-    const sublist = item.children.find(
-      (child): child is List => child.type === "list",
-    );
-    const subitems = sublist ? subitemsFromList(sublist) : [];
-    return {
+    const subitems = subitemsFromItem(item, recordSource);
+    const subitem: Subitem = {
       title: paragraph ? text(paragraph.children).trim() : "",
       ...(subitems.length > 0 ? { subitems } : null),
     };
+    recordSource?.(subitem, item);
+    return subitem;
   });
 }
 
@@ -285,39 +356,6 @@ function text(nodes: PhrasingContent[]): string {
 
 function normalise(value: string) {
   return value.toLowerCase().replace(/[^a-z]/g, "");
-}
-
-function getAgendaDate(contents: string): Date | null {
-  const match =
-    /https:\/\/www\.timeanddate\.com\/worldclock\/converter\.html\?iso=(\d{8}T\d{6})&/.exec(
-      contents,
-    );
-  if (match) {
-    const value = match[1];
-    const date = new Date(
-      `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}T${value.slice(9, 11)}:${value.slice(11, 13)}:${value.slice(13, 15)}Z`,
-    );
-    return Number.isNaN(+date) ? null : date;
-  }
-  // Older agenda templates used this timeanddate URL format.
-  const oldMatch =
-    /https:\/\/www\.timeanddate\.com\/worldclock\/meetingdetails\.html\?year=(\d+)&month=(\d+)&day=(\d+)&hour=(\d+)&min=(\d+)&/.exec(
-      contents,
-    );
-  if (!oldMatch) return null;
-  const [, year, month, day, hour, minute] = oldMatch;
-  const date = new Date(
-    `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:00Z`,
-  );
-  return Number.isNaN(+date) ? null : date;
-}
-
-function looksLikeItMightHaveBeenCancelled(contents: string): boolean {
-  return (
-    /\bcancell?ed\b/i.test(contents) ||
-    /\bmeeting has been moved\b/i.test(contents) ||
-    /\bcall was moved\b/i.test(contents)
-  );
 }
 
 function getEnd(contents: string, start: Date): Date | null {
