@@ -48,6 +48,7 @@ export async function correlateNotes(
   )?.[1];
   const references = new Map<string, Reference>();
   for (const reference of getReferences(contents, localRepo)) {
+    if (reference.owner !== "graphql") continue;
     if (!references.has(reference.key) || reference.discussion) {
       references.set(reference.key, reference);
     }
@@ -60,7 +61,7 @@ export async function correlateNotes(
     );
     return {
       ...details,
-      references: [...new Set(keys)],
+      references: [...new Set(keys)].filter((key) => references.has(key)),
       ...(subitems ? { subitems: subitems.map(enrichItem) } : null),
     };
   }

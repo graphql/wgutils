@@ -1,6 +1,20 @@
 import * as https from "node:https";
 import { execFileSync } from "node:child_process";
 
+export function normalizeGitHubRepository(repository: string): string {
+  switch (repository.toLowerCase()) {
+    case "facebook/graphql":
+    case "facebook/graphql-spec":
+      return "graphql/graphql-spec";
+    case "facebook/graphql-js":
+      return "graphql/graphql-js";
+    case "robrichard/defer-stream-wg":
+      return "graphql/defer-stream-wg";
+    default:
+      return repository.toLowerCase();
+  }
+}
+
 export function getToken() {
   const env = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "";
   if (env) return env;

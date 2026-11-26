@@ -1,5 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
+import { normalizeGitHubRepository } from "../../github.ts";
 import { remark } from "remark";
 import remarkGfm from "remark-gfm";
 import type {
@@ -83,9 +84,9 @@ export async function getAgendaSources(
   const sources: AgendaSource[] = [];
   for (const file of files) {
     const contents = (await readFile(file, "utf8")).replace(
-      /https?:\/\/github\.com\/facebook\/graphql(?:-(js|spec))?(?=$|[/?#\s<>()[\]"'])/gi,
-      (_url, suffix = "spec") =>
-        `https://github.com/graphql/graphql-${suffix.toLowerCase()}`,
+      /https?:\/\/github\.com\/(facebook\/graphql(?:-js|-spec)?|robrichard\/defer-stream-wg)(?=$|[/?#\s<>()[\]"'])/gi,
+      (_url, repository: string) =>
+        `https://github.com/${normalizeGitHubRepository(repository)}`,
     );
     // A cancelled agenda may no longer have the normal date, attendee, or
     // agenda sections, so recognise it before trying to extract those fields.

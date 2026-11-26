@@ -1,4 +1,4 @@
-import { graphql } from "../../github.ts";
+import { graphql, normalizeGitHubRepository } from "../../github.ts";
 
 export interface Reference {
   key: string;
@@ -17,7 +17,7 @@ export function getReferences(
   function add(repository: string, digits: string, discussion = false) {
     const number = Number(digits);
     if (number < 1 || number > 2_147_483_647) return;
-    const [owner, repo] = repository.toLowerCase().split("/");
+    const [owner, repo] = normalizeGitHubRepository(repository).split("/");
     references.push({
       key: `${owner}/${repo}#${number}`,
       owner,
@@ -34,7 +34,7 @@ export function getReferences(
     "",
   );
   source = source.replace(
-    /\[[^\]\n]+\](?=\(\s*<?https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/(?:issues|pulls?|discussions)\/(\d+)\b)/gi,
+    /\[[^\]\n]+\](?=\(\s*<?https?:\/\/github\.com\/[\w.-]+\/[\w.-]+\/(?:issues|pulls?|discussions)[/#](\d+)\b)/gi,
     (link, number: string) =>
       link.replace(/(?<![\w/])#\d+\b/g, (ref) =>
         ref === `#${number}` ? "" : ref,
@@ -44,7 +44,7 @@ export function getReferences(
   // Consume URLs first so their fragments cannot be mistaken for shorthand.
   const shorthand = source.replace(/https?:\/\/[^\s<>"`()[\]]+/gi, (url) => {
     const match =
-      /^https:\/\/github\.com\/([\w.-]+\/[\w.-]+)\/(issues|pulls?|discussions)\/(\d+)(?=$|[/?#.,:;!])/i.exec(
+      /^https?:\/\/github\.com\/([\w.-]+\/[\w.-]+)\/(issues|pulls?|discussions)[/#](\d+)(?=$|[/?#.,:;!])/i.exec(
         url,
       );
     if (match)
